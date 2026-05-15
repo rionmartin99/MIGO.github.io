@@ -41,6 +41,17 @@
       border-radius: 1.5rem;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
     }
+    .blocklyFlyoutBackground { fill: #0f172a; fill-opacity: 0.8; }
+    .blocklyFlyout { border-right: 1px solid rgba(255,255,255,0.1); }
+    .blocklyToolboxDiv { background-color: transparent; }
+    
+    /* Flyout Label Styling */
+    .label-events text { fill: #4ade80 !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
+    .label-logic text { fill: #60a5fa !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
+    .label-movement text { fill: #2dd4bf !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
+    .label-sensors text { fill: #fbbf24 !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
+    .label-hardware text { fill: #c084fc !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
+    .label-functions text { fill: #f472b6 !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
 
     /* D-PAD STYLING */
     .d-pad-container {
@@ -109,24 +120,158 @@
 <body>
 
   <!-- LANDING PAGE -->
-  <div id="landingPage" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-teal-900/95 backdrop-blur-xl p-6 transition-opacity duration-500">
-    <h1 class="text-4xl md:text-6xl font-bold mb-8 text-center drop-shadow-lg">MIGO <span class="text-amber-400">Controller</span></h1>
-    
-    <div class="glass-panel p-8 max-w-md w-full text-center">
-      <div class="mb-6 p-4 bg-amber-500/20 border border-amber-400/50 rounded-xl text-amber-100 flex items-center justify-center gap-3">
-        <i class="ph-bold ph-device-mobile-camera text-3xl animate-pulse"></i>
-        <div class="text-left">
-          <p class="font-bold text-lg leading-tight text-amber-300">Landscape Mode Required</p>
-          <p class="text-sm opacity-90">Please rotate your device for the best experience.</p>
+  <div id="landingPage" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-teal-900/95 backdrop-blur-xl p-4 md:p-6 transition-opacity duration-500">
+    <h1 class="text-4xl md:text-6xl font-bold mb-2 text-center drop-shadow-lg">MIGO <span class="text-amber-400">Controller</span></h1>
+    <p class="text-white/60 mb-6 text-sm md:text-base">Choose your coding level to get started!</p>
+
+    <div class="glass-panel p-6 max-w-2xl w-full">
+
+      <!-- Robot Name -->
+      <label class="block text-left text-sm font-semibold mb-1 opacity-90 pl-1">My Robot's Name</label>
+      <input type="text" id="robotNameInput" placeholder="e.g. AstroBot" class="w-full p-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500 mb-6 text-lg font-semibold text-center transition-all">
+
+      <!-- Tier Selection -->
+      <p class="text-sm font-bold text-white/70 mb-3 text-center uppercase tracking-widest">Pick Your Level</p>
+      <div class="grid grid-cols-2 gap-4 mb-6">
+
+        <!-- Tier 1: Explorer -->
+        <div id="tier1Card" onclick="selectTier(1)" class="tier-card cursor-pointer rounded-2xl p-4 border-2 border-white/20 bg-white/10 hover:bg-green-500/20 hover:border-green-400 transition-all active:scale-95 text-center">
+          <div class="text-4xl mb-2">🚀</div>
+          <h3 class="text-lg font-bold text-green-300">Explorer</h3>
+          <p class="text-xs text-white/70 mt-1">Simple blocks for<br>moving your robot!</p>
+          <div class="mt-3 flex flex-wrap gap-1 justify-center">
+            <span class="bg-green-500/30 text-green-200 text-[10px] px-2 py-0.5 rounded-full">Move</span>
+            <span class="bg-green-500/30 text-green-200 text-[10px] px-2 py-0.5 rounded-full">Stop</span>
+            <span class="bg-green-500/30 text-green-200 text-[10px] px-2 py-0.5 rounded-full">Wait</span>
+            <span class="bg-green-500/30 text-green-200 text-[10px] px-2 py-0.5 rounded-full">Repeat</span>
+          </div>
+        </div>
+
+        <!-- Tier 2: Inventor -->
+        <div id="tier2Card" onclick="selectTier(2)" class="tier-card cursor-pointer rounded-2xl p-4 border-2 border-white/20 bg-white/10 hover:bg-amber-500/20 hover:border-amber-400 transition-all active:scale-95 text-center">
+          <div class="text-4xl mb-2">🔬</div>
+          <h3 class="text-lg font-bold text-amber-300">Inventor</h3>
+          <p class="text-xs text-white/70 mt-1">Sensors, logic &amp; full<br>control of your robot!</p>
+          <div class="mt-3 flex flex-wrap gap-1 justify-center">
+            <span class="bg-amber-500/30 text-amber-200 text-[10px] px-2 py-0.5 rounded-full">Sensors</span>
+            <span class="bg-amber-500/30 text-amber-200 text-[10px] px-2 py-0.5 rounded-full">If/Else</span>
+            <span class="bg-amber-500/30 text-amber-200 text-[10px] px-2 py-0.5 rounded-full">Hardware</span>
+            <span class="bg-amber-500/30 text-amber-200 text-[10px] px-2 py-0.5 rounded-full">Functions</span>
+          </div>
         </div>
       </div>
 
-      <label class="block text-left text-sm font-semibold mb-2 opacity-90 pl-1">Robot Name</label>
-      <input type="text" id="robotNameInput" placeholder="e.g. AstroBot" class="w-full p-4 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500 mb-8 text-xl font-semibold text-center transition-all">
-      
-      <button onclick="startApp()" class="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 rounded-xl font-bold text-2xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3">
-        <i class="ph-bold ph-rocket-launch"></i> Start
+      <!-- Start Button -->
+      <button id="startBtn" onclick="startApp()" disabled class="w-full py-4 bg-gradient-to-r from-gray-500 to-gray-600 rounded-xl font-bold text-xl shadow-xl transition-all flex items-center justify-center gap-3 opacity-50 cursor-not-allowed" id="startBtn">
+        <i class="ph-bold ph-rocket-launch"></i> Choose a Level First!
       </button>
+    </div>
+  </div>
+
+  <!-- GUIDE MODAL -->
+  <div id="guideModal" class="hidden absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="glass-panel bg-teal-900/95 p-6 max-w-2xl w-full max-h-full overflow-y-auto relative rounded-2xl border-amber-500/50 border-2 shadow-2xl">
+      <button onclick="document.getElementById('guideModal').classList.add('hidden')" class="absolute top-4 right-4 bg-red-500 hover:bg-red-600 w-8 h-8 rounded-full font-bold flex items-center justify-center transition-transform active:scale-90"><i class="ph-bold ph-x text-white"></i></button>
+      
+      <h2 class="text-3xl font-bold mb-4 text-amber-400 border-b border-amber-400/30 pb-2">MIGO User Guide</h2>
+      
+      <div class="space-y-4 text-sm leading-relaxed text-teal-50">
+        <section>
+          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-bluetooth text-blue-400"></i> Connecting</h3>
+          <p>Turn on MIGO, then tap the <b>Connect</b> button on the left. Select "Migo_Web_Bot" from the popup menu.</p>
+        </section>
+        
+        <section>
+          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-puzzle-piece text-amber-400"></i> Coding Basics</h3>
+          <p>Drag blocks from the left menu into the workspace. Your code must be snapped inside the <b>Setup</b> block (runs once) or the <b>Loop</b> block (runs forever) to work.</p>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-plug text-green-400"></i> Hardware Plugs</h3>
+          <p>MIGO uses simple Plugs instead of complicated pin numbers. Connect your wires to these pins on the ESP32 board:</p>
+          <ul class="list-disc pl-5 mt-1 space-y-1 text-xs md:text-sm">
+            <li><b>Plug A (Pin 34):</b> Use for sensors (Buttons, Knobs, Light Sensors).</li>
+            <li><b>Plug B (Pin 35):</b> Use for sensors.</li>
+            <li><b>Plug C (Pin 32):</b> Use for sensors.</li>
+            <li><b>Plug D (Pin 14):</b> Use for outputs (LEDs, Buzzers).</li>
+            <li><b>Ultrasonic:</b> Automatically uses Trigger (Pin 13) and Echo (Pin 12).</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-upload-simple text-purple-400"></i> Running Your Code</h3>
+          <p>Click <b>Upload</b> to send the code to MIGO. It will save it to memory so you never lose it! Then click <b>Run</b> to watch MIGO execute your commands.</p>
+        </section>
+      </div>
+
+      <!-- COMPREHENSIVE BLOCK GUIDE -->
+      <div class="mt-8 pt-6 border-t border-amber-400/30">
+        <h2 class="text-2xl font-bold mb-4 text-amber-400">Block Library Reference</h2>
+        
+        <div class="space-y-4">
+          <!-- Events -->
+          <section class="bg-white/5 rounded-xl p-4 border border-white/10">
+            <h3 class="text-lg font-bold text-green-400 mb-2 border-b border-white/10 pb-1">Starting Events</h3>
+            <ul class="space-y-2 text-sm text-teal-50">
+              <li><span class="font-bold text-green-300">Setup:</span> Code placed here runs exactly <b>once</b> when MIGO starts. Great for setting up pins or initial variables.</li>
+              <li><span class="font-bold text-green-300">Loop forever:</span> Code here repeats continuously until you turn MIGO off. This is where your main brain logic goes!</li>
+            </ul>
+          </section>
+
+          <!-- Logic & Control -->
+          <section class="bg-white/5 rounded-xl p-4 border border-white/10">
+            <h3 class="text-lg font-bold text-blue-400 mb-2 border-b border-white/10 pb-1">Logic & Control</h3>
+            <ul class="space-y-2 text-sm text-teal-50">
+              <li><span class="font-bold text-blue-300">If / Do:</span> Makes a decision. If a condition is true, it does the action inside. Click the blue gear icon on the block to add 'Else' or 'Else If' branches!</li>
+              <li><span class="font-bold text-blue-300">Compare (=, &lt;, &gt;):</span> Used inside 'If' blocks to compare two values (e.g. Distance &lt; 10).</li>
+              <li><span class="font-bold text-blue-300">Repeat X times:</span> A loop that repeats specific code a certain number of times before moving on.</li>
+              <li><span class="font-bold text-blue-300">Wait ms:</span> Pauses the robot's brain for a specific number of milliseconds (1000 ms = 1 second).</li>
+            </ul>
+          </section>
+
+          <!-- Movement -->
+          <section class="bg-white/5 rounded-xl p-4 border border-white/10">
+            <h3 class="text-lg font-bold text-indigo-400 mb-2 border-b border-white/10 pb-1">Robot Movement</h3>
+            <ul class="space-y-2 text-sm text-teal-50">
+              <li><span class="font-bold text-indigo-300">Move at speed:</span> Starts MIGO's motors. Speed goes from 0 (stopped) to 255 (maximum speed).</li>
+              <li><span class="font-bold text-indigo-300">Stop Moving:</span> Immediately stops all motors. Remember to use this to prevent MIGO from running away forever!</li>
+            </ul>
+          </section>
+
+          <!-- Sensors -->
+          <section class="bg-white/5 rounded-xl p-4 border border-white/10">
+            <h3 class="text-lg font-bold text-amber-500 mb-2 border-b border-white/10 pb-1">Sensors</h3>
+            <ul class="space-y-2 text-sm text-teal-50">
+              <li><span class="font-bold text-amber-300">Ultrasonic Distance:</span> Returns the distance (in cm) of objects in front of MIGO.</li>
+              <li><span class="font-bold text-amber-300">IR Sensor:</span> Returns <i>True</i> if it sees a dark line, <i>False</i> if not.</li>
+              <li><span class="font-bold text-amber-300">Button:</span> Returns <i>True</i> if pressed.</li>
+              <li><span class="font-bold text-amber-300">Knob / Light Level:</span> Automatically converts raw electricity into a smooth 0-100% scale.</li>
+              <li><span class="font-bold text-amber-300">Read Digital/Analog:</span> Generic blocks for custom sensors! Digital returns True/False. Analog returns raw 0-4095.</li>
+            </ul>
+          </section>
+
+          <!-- Hardware Plugs -->
+          <section class="bg-white/5 rounded-xl p-4 border border-white/10">
+            <h3 class="text-lg font-bold text-purple-400 mb-2 border-b border-white/10 pb-1">Hardware Plugs</h3>
+            <ul class="space-y-2 text-sm text-teal-50">
+              <li><span class="font-bold text-purple-300">Set Plug Mode:</span> Always put this in 'Setup'! Tells the brain if a plug is an Input (sensor) or Output (light/buzzer).</li>
+              <li><span class="font-bold text-purple-300">Write Digital:</span> Sends full power (High) or no power (Low) to an output plug.</li>
+              <li><span class="font-bold text-purple-300">Write Analog:</span> Sends partial power to an output plug using PWM (from 0 to 255). Great for fading LEDs or controlling speed.</li>
+            </ul>
+          </section>
+
+          <!-- Functions & Utils -->
+          <section class="bg-white/5 rounded-xl p-4 border border-white/10">
+            <h3 class="text-lg font-bold text-pink-400 mb-2 border-b border-white/10 pb-1">Functions & Print</h3>
+            <ul class="space-y-2 text-sm text-teal-50">
+              <li><span class="font-bold text-pink-300">Define Function:</span> Groups blocks into a custom reusable command (e.g. 'Dance').</li>
+              <li><span class="font-bold text-pink-300">Call Function:</span> Runs the custom command you created.</li>
+              <li><span class="font-bold text-pink-300">Print to monitor:</span> Sends data back to your screen. You can plug a sensor block inside it to view live readings in the bottom-left window!</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -136,9 +281,12 @@
     <!-- Sidebar -->
     <aside class="glass-panel p-3 pb-8 landscape:pb-3 flex flex-col w-full landscape:w-80 flex-shrink-0 overflow-y-auto">
       
-      <div class="text-center mb-2 shrink-0 flex items-center justify-between landscape:flex-col landscape:justify-center">
+      <div class="text-center mb-2 shrink-0 flex items-center justify-between landscape:flex-col landscape:justify-center relative">
+        <button onclick="document.getElementById('guideModal').classList.remove('hidden')" class="absolute top-0 right-0 text-white/60 hover:text-white transition-colors flex items-center justify-center w-6 h-6 rounded-full border-2 border-current" title="User Guide">
+          <i class="ph-bold ph-question text-sm"></i>
+        </button>
         <div>
-          <h1 id="robotTitle" class="text-2xl landscape:text-3xl font-bold tracking-tight">Robot</h1>
+          <h1 id="robotTitle" class="text-2xl landscape:text-3xl font-bold tracking-tight mt-1">Robot</h1>
           <p class="text-[10px] landscape:text-xs opacity-80" id="status">Status: Disconnected</p>
         </div>
         <button id="connectBtn" onclick="connectBLE()" class="glass-panel py-2 px-4 landscape:w-full landscape:mt-2 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/20 transition-colors">
@@ -169,19 +317,27 @@
       </div>
 
       <!-- Small Action Buttons -->
-      <div class="grid grid-cols-4 gap-2 shrink-0 mb-2">
-        <button onclick="saveProject()" class="bg-blue-600/80 hover:bg-blue-600 py-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center shadow-lg" title="Save Project">
-          <i class="ph-bold ph-floppy-disk text-lg mb-1"></i> Save
-        </button>
-        <button onclick="document.getElementById('loadInput').click()" class="bg-blue-600/80 hover:bg-blue-600 py-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center shadow-lg" title="Load Project">
-          <i class="ph-bold ph-folder-open text-lg mb-1"></i> Load
-        </button>
-        <button onclick="uploadProgram()" class="bg-amber-600/80 hover:bg-amber-600 py-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center shadow-lg" title="Upload Code">
-          <i class="ph-bold ph-upload-simple text-lg mb-1"></i> Upload
-        </button>
-        <button onclick="runAutoMode()" class="bg-teal-600/80 hover:bg-teal-600 py-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center shadow-lg" title="Run Auto">
-          <i class="ph-bold ph-play text-lg mb-1"></i> Run
-        </button>
+      <div class="flex gap-2 shrink-0 mb-2 w-full justify-between items-center">
+        <div class="flex gap-2 w-1/2">
+          <button onclick="saveProject()" class="w-full bg-blue-600/80 hover:bg-blue-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors" title="Save Project">
+            <i class="ph-bold ph-floppy-disk text-lg mb-1"></i> Save
+          </button>
+          <button onclick="document.getElementById('loadInput').click()" class="w-full bg-blue-600/80 hover:bg-blue-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors" title="Load Project">
+            <i class="ph-bold ph-folder-open text-lg mb-1"></i> Load
+          </button>
+        </div>
+        
+        <!-- Subtle vertical separator -->
+        <div class="w-[1px] h-8 bg-white/20 mx-1"></div>
+
+        <div class="flex gap-2 w-1/2">
+          <button onclick="uploadProgram()" class="w-full bg-amber-600/80 hover:bg-amber-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors" title="Upload Code">
+            <i class="ph-bold ph-upload-simple text-lg mb-1"></i> Upload
+          </button>
+          <button onclick="runAutoMode()" class="w-full bg-teal-600/80 hover:bg-teal-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors" title="Run Auto">
+            <i class="ph-bold ph-play text-lg mb-1"></i> Run
+          </button>
+        </div>
         <input type="file" id="loadInput" accept=".json,.xml" class="hidden" onchange="loadProject(event)">
       </div>
 
@@ -193,16 +349,67 @@
     </aside>
 
     <!-- Workspace -->
-    <main class="glass-panel p-0 m-0 flex-grow relative min-h-[50vh] landscape:min-h-0">
-      <div id="blocklyDiv" class="absolute inset-0 rounded-[1.5rem] overflow-hidden"></div>
+    <main class="glass-panel p-0 m-0 flex-grow relative min-h-[50vh] landscape:min-h-0 flex flex-col overflow-hidden">
+      <!-- Toolbox Filter Header (Inventor only) -->
+      <div id="categoryFilterBar" class="bg-teal-900/40 border-b border-white/10 px-4 py-2 flex items-center gap-4 shrink-0 z-[40]">
+        <span class="text-sm font-bold text-amber-400 flex items-center gap-2 whitespace-nowrap"><i class="ph-bold ph-stack"></i> Block Library</span>
+        <div class="relative">
+          <select id="categoryFilter" onchange="filterBlocks(this.value)" class="appearance-none bg-black/40 backdrop-blur border border-white/20 text-white text-xs font-bold py-1.5 pl-3 pr-8 rounded-lg outline-none focus:border-amber-400 transition-colors cursor-pointer">
+            <option value="all">Show All Blocks</option>
+            <option value="events">Events</option>
+            <option value="logic">Logic &amp; Math</option>
+            <option value="movement">Movement</option>
+            <option value="sensors">Sensors</option>
+            <option value="hardware">Hardware</option>
+            <option value="functions">Functions</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white/70">
+            <i class="ph-bold ph-caret-down text-xs"></i>
+          </div>
+        </div>
+      </div>
+
+      <div id="blocklyDiv" class="flex-grow relative z-0"></div>
     </main>
   </div>
 
   <script>
     // --- Landing Page Logic ---
+    let selectedTier = 0;
+
+    function selectTier(tier) {
+      selectedTier = tier;
+      const t1 = document.getElementById('tier1Card');
+      const t2 = document.getElementById('tier2Card');
+      const btn = document.getElementById('startBtn');
+
+      t1.classList.remove('border-green-400', 'bg-green-500/30', 'ring-2', 'ring-green-400');
+      t2.classList.remove('border-amber-400', 'bg-amber-500/30', 'ring-2', 'ring-amber-400');
+
+      if (tier === 1) {
+        t1.classList.add('border-green-400', 'bg-green-500/30', 'ring-2', 'ring-green-400');
+        btn.className = "w-full py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 rounded-xl font-bold text-xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 cursor-pointer";
+        btn.innerHTML = '<i class="ph-bold ph-rocket-launch"></i> Start as Explorer!';
+      } else {
+        t2.classList.add('border-amber-400', 'bg-amber-500/30', 'ring-2', 'ring-amber-400');
+        btn.className = "w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 rounded-xl font-bold text-xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 cursor-pointer";
+        btn.innerHTML = '<i class="ph-bold ph-rocket-launch"></i> Start as Inventor!';
+      }
+      btn.disabled = false;
+    }
+
     function startApp() {
+      if (selectedTier === 0) return;
       const name = document.getElementById('robotNameInput').value.trim() || 'MIGO Bot';
       document.getElementById('robotTitle').innerText = name;
+
+      // Show/hide category filter based on tier
+      const filterBar = document.getElementById('categoryFilterBar');
+      if (filterBar) filterBar.style.display = selectedTier === 1 ? 'none' : 'flex';
+
+      // Apply toolbox for selected tier
+      const toolboxXml = selectedTier === 1 ? getTier1Toolbox() : getTier2Toolbox();
+      workspace.updateToolbox(toolboxXml);
       
       const landing = document.getElementById('landingPage');
       landing.style.opacity = '0';
@@ -377,32 +584,111 @@
       { "type": "stop_robot", "message0": "Stop Moving", "previousStatement": null, "nextStatement": null, "colour": 230 },
       { "type": "wait_time", "message0": "Wait %1 ms", "args0": [ { "type": "field_number", "name": "TIME", "value": 1000, "min": 0 } ], "previousStatement": null, "nextStatement": null, "colour": 60 },
       { "type": "control_repeat", "message0": "Repeat %1 times %2 %3", "args0": [ { "type": "field_number", "name": "TIMES", "value": 5, "min": 1 }, { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" } ], "previousStatement": null, "nextStatement": null, "colour": 290 },
+      
+      { "type": "setup_pin", "message0": "Set %1 to %2", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A (Pin 34)", "34"], ["Plug B (Pin 35)", "35"], ["Plug C (Pin 32)", "32"], ["Plug D (Pin 14)", "14"] ] }, { "type": "field_dropdown", "name": "MODE", "options": [ ["Input (Read)", "IN"], ["Output (Write)", "OUT"] ] } ], "previousStatement": null, "nextStatement": null, "colour": 260 },
+      { "type": "digital_write", "message0": "Write Digital %2 to %1", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug D (Pin 14)", "14"], ["Plug C (Pin 32)", "32"] ] }, { "type": "field_dropdown", "name": "VAL", "options": [ ["ON (High)", "1"], ["OFF (Low)", "0"] ] } ], "previousStatement": null, "nextStatement": null, "colour": 260 },
+      { "type": "analog_write", "message0": "Write Analog power to %1: %2", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug D (Pin 14)", "14"], ["Plug C (Pin 32)", "32"] ] }, { "type": "input_value", "name": "VAL", "check": "Number" } ], "previousStatement": null, "nextStatement": null, "colour": 260 },
+      
+      { "type": "sensor_ultrasonic", "message0": "Distance from Ultrasonic", "output": "Number", "colour": 100 },
+      { "type": "sensor_ir", "message0": "Is IR Sensor on %1 seeing a line?", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Boolean", "colour": 100 },
+      { "type": "sensor_button", "message0": "Is Button on %1 pressed?", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Boolean", "colour": 100 },
+      { "type": "sensor_knob", "message0": "Get Knob Level on %1", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Number", "colour": 100 },
+      { "type": "sensor_ldr", "message0": "Get Light Level on %1", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Number", "colour": 100 },
+      { "type": "read_digital", "message0": "Read Digital Value on %1", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Boolean", "colour": 100 },
+      { "type": "read_analog", "message0": "Read Analog Value on %1", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Number", "colour": 100 },
+
       { "type": "def_func", "message0": "Define function %1 %2 %3", "args0": [ { "type": "field_input", "name": "NAME", "text": "myFunction" }, { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" } ], "colour": 290 },
       { "type": "call_func", "message0": "Call function %1", "args0": [ { "type": "field_input", "name": "NAME", "text": "myFunction" } ], "previousStatement": null, "nextStatement": null, "colour": 290 },
       { "type": "control_led", "message0": "Turn Built-in LED %1", "args0": [ { "type": "field_dropdown", "name": "STATE", "options": [ ["ON", "on"], ["OFF", "off"] ] } ], "previousStatement": null, "nextStatement": null, "colour": 160 },
-      { "type": "print_serial", "message0": "Print %1 to monitor", "args0": [ { "type": "field_input", "name": "TEXT", "text": "Hello!" } ], "previousStatement": null, "nextStatement": null, "colour": 160 }
+      { "type": "print_serial", "message0": "Print %1 to monitor", "args0": [ { "type": "input_value", "name": "VAL" } ], "previousStatement": null, "nextStatement": null, "colour": 160 }
     ]);
 
-    const toolboxXml = `
-      <xml xmlns="https://developers.google.com/blockly/xml">
+    const blockCategories = {
+      events: `<label text="✦ EVENTS" web-class="label-events"></label><block type="event_setup"></block><block type="event_loop"></block>`,
+      logic: `<label text="✦ LOGIC &amp; MATH" web-class="label-logic"></label><block type="controls_if"></block><block type="logic_compare"></block><block type="logic_operation"></block><block type="math_number"></block><block type="text"></block><block type="control_repeat"></block>`,
+      movement: `<label text="✦ MOVEMENT" web-class="label-movement"></label><block type="move_robot"></block><block type="stop_robot"></block><block type="wait_time"></block>`,
+      sensors: `<label text="✦ SENSORS" web-class="label-sensors"></label><block type="sensor_ultrasonic"></block><block type="sensor_ir"></block><block type="sensor_button"></block><block type="sensor_knob"></block><block type="sensor_ldr"></block><block type="read_digital"></block><block type="read_analog"></block>`,
+      hardware: `<label text="✦ HARDWARE" web-class="label-hardware"></label><block type="setup_pin"></block><block type="digital_write"></block><block type="analog_write"></block><block type="control_led"></block>`,
+      functions: `<label text="✦ FUNCTIONS" web-class="label-functions"></label><block type="def_func"></block><block type="call_func"></block><block type="print_serial"></block>`
+    };
+
+    function getTier1Toolbox() {
+      return `<xml xmlns="https://developers.google.com/blockly/xml">
         <block type="event_setup"></block>
         <block type="event_loop"></block>
+        <sep gap="24"></sep>
         <block type="move_robot"></block>
         <block type="stop_robot"></block>
         <block type="wait_time"></block>
+        <sep gap="24"></sep>
         <block type="control_repeat"></block>
+        <sep gap="24"></sep>
         <block type="def_func"></block>
         <block type="call_func"></block>
+        <sep gap="24"></sep>
         <block type="control_led"></block>
         <block type="print_serial"></block>
-      </xml>
-    `;
+        <block type="text"></block>
+      </xml>`;
+    }
 
-    const workspace = Blockly.inject('blocklyDiv', {
-      toolbox: toolboxXml,
+    function getTier2Toolbox() {
+      return `<xml xmlns="https://developers.google.com/blockly/xml">${blockCategories.events}<sep gap='32'></sep>${blockCategories.logic}<sep gap='32'></sep>${blockCategories.movement}<sep gap='32'></sep>${blockCategories.sensors}<sep gap='32'></sep>${blockCategories.hardware}<sep gap='32'></sep>${blockCategories.functions}</xml>`;
+    }
+
+    function filterBlocks(category) {
+      if (!workspace) return;
+      let xmlContent = "";
+      if (category === "all") {
+        xmlContent = blockCategories.events + "<sep gap='32'></sep>" +
+                     blockCategories.logic + "<sep gap='32'></sep>" +
+                     blockCategories.movement + "<sep gap='32'></sep>" +
+                     blockCategories.sensors + "<sep gap='32'></sep>" +
+                     blockCategories.hardware + "<sep gap='32'></sep>" +
+                     blockCategories.functions;
+      } else {
+        xmlContent = blockCategories[category];
+      }
+      const newXml = `<xml xmlns="https://developers.google.com/blockly/xml">${xmlContent}</xml>`;
+      workspace.updateToolbox(newXml);
+    }
+
+    let workspace = Blockly.inject('blocklyDiv', {
+      toolbox: `<xml xmlns="https://developers.google.com/blockly/xml"><block type="event_setup"></block></xml>`,
       zoom: { controls: true, wheel: true, startScale: 0.8, maxScale: 2, minScale: 0.3, scaleSpeed: 1.1 },
       trashcan: true
     });
+
+    function parseValue(block) {
+      if(!block) return {c: "VAL", v: 0};
+      if(block.type === 'math_number') return {c: "VAL", v: Number(block.getFieldValue("NUM"))};
+      if(block.type === 'text') return {c: "TXT", v: block.getFieldValue("TEXT")};
+      if(block.type === 'logic_compare') {
+        let op = block.getFieldValue("OP"); // 'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'
+        let opStr = "==";
+        if (op === "NEQ") opStr = "!=";
+        else if (op === "LT") opStr = "<";
+        else if (op === "LTE") opStr = "<=";
+        else if (op === "GT") opStr = ">";
+        else if (op === "GTE") opStr = ">=";
+        return { c: "OP", op: opStr, l: parseValue(block.getInputTargetBlock("A")), r: parseValue(block.getInputTargetBlock("B")) };
+      }
+      if(block.type === 'logic_operation') {
+        return { c: "OP", op: block.getFieldValue("OP") === "AND" ? "AND" : "OR", l: parseValue(block.getInputTargetBlock("A")), r: parseValue(block.getInputTargetBlock("B")) };
+      }
+      if(block.type === 'sensor_ultrasonic') return {c: "UR", t: 13, e: 12}; // Default Pins
+      if(block.type === 'sensor_ir' || block.type === 'sensor_button') {
+        // Digital Read (Active Low comparison for ease of use)
+        return {c: "OP", op: "==", l: {c: "DR", p: Number(block.getFieldValue("PIN"))}, r: {c: "VAL", v: 0}};
+      }
+      if(block.type === 'sensor_knob' || block.type === 'sensor_ldr') {
+        // Map 0-4095 to 0-100%
+        return {c: "OP", op: "/", l: {c: "OP", op: "*", l: {c: "AR", p: Number(block.getFieldValue("PIN"))}, r: {c: "VAL", v: 100}}, r: {c: "VAL", v: 4095}};
+      }
+      if(block.type === 'read_digital') return {c: "DR", p: Number(block.getFieldValue("PIN"))};
+      if(block.type === 'read_analog') return {c: "AR", p: Number(block.getFieldValue("PIN"))};
+      return {c: "VAL", v: 0};
+    }
 
     function parseBlock(block) {
       if(!block) return null;
@@ -413,9 +699,17 @@
         else if(current.type === 'stop_robot') arr.push({c: "M", d: "S", s: 0});
         else if(current.type === 'wait_time') arr.push({c: "W", t: Number(current.getFieldValue("TIME"))});
         else if(current.type === 'control_repeat') arr.push({c: "FOR", times: Number(current.getFieldValue("TIMES")), "do": parseBlock(current.getInputTargetBlock("DO")) || []});
+        else if(current.type === 'controls_if') {
+          let obj = {c: "IF", cond: parseValue(current.getInputTargetBlock("IF0")), "do": parseBlock(current.getInputTargetBlock("DO0")) || []};
+          if (current.getInputTargetBlock("ELSE")) obj["else"] = parseBlock(current.getInputTargetBlock("ELSE")) || [];
+          arr.push(obj);
+        }
+        else if(current.type === 'setup_pin') arr.push({c: "PM", p: Number(current.getFieldValue("PIN")), m: current.getFieldValue("MODE")});
+        else if(current.type === 'digital_write') arr.push({c: "DW", p: Number(current.getFieldValue("PIN")), v: {c: "VAL", v: Number(current.getFieldValue("VAL"))}});
+        else if(current.type === 'analog_write') arr.push({c: "AW", p: Number(current.getFieldValue("PIN")), v: parseValue(current.getInputTargetBlock("VAL"))});
         else if(current.type === 'call_func') arr.push({c: "C", f: current.getFieldValue("NAME")});
         else if(current.type === 'control_led') arr.push({c: "L", state: current.getFieldValue("STATE")});
-        else if(current.type === 'print_serial') arr.push({c: "P", text: current.getFieldValue("TEXT")});
+        else if(current.type === 'print_serial') arr.push({c: "P", v: parseValue(current.getInputTargetBlock("VAL"))});
         current = current.getNextBlock();
       }
       return arr;
