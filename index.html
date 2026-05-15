@@ -511,57 +511,75 @@
     attachDPad('btn-left', 'L'); attachDPad('btn-right', 'R');
     attachDPad('btn-stop', 'S');
 
-    // --- Virtual Joystick Logic ---
-    let currentJoyCmd = 'S';
+    // --- Virtual Joystick Logic (Proportional Arcade Drive) ---
     const joyContainer = document.getElementById('joystickContainer');
     const joyKnob = document.getElementById('joystickKnob');
     let isDragging = false;
+    let joyActive = false;
+    let joyInterval = null;
+    let lastLeft = 0, lastRight = 0;
+
+    function calcArcadeDrive(dx, dy, maxDist) {
+      const dist = Math.min(Math.sqrt(dx*dx + dy*dy), maxDist);
+      const power = dist / maxDist; // 0.0 to 1.0
+      const DEADZONE = 0.15;
+      if (power < DEADZONE) return { left: 0, right: 0 };
+
+      // Normalize power past deadzone for smooth response
+      const throttle = ((power - DEADZONE) / (1 - DEADZONE));
+
+      // -dy = forward (screen Y is inverted), -dx = turn (negate so right joystick = right turn)
+      const forward = (-dy / maxDist) * throttle;
+      const turn    = (-dx / maxDist) * throttle;
+
+      // Arcade mix: one side gets boosted, the other reduced
+      let left  = Math.round((forward + turn) * 255);
+      let right = Math.round((forward - turn) * 255);
+
+      left  = Math.max(-255, Math.min(255, left));
+      right = Math.max(-255, Math.min(255, right));
+      return { left, right };
+    }
 
     function handleJoy(e) {
       if (!isDragging && e.type !== 'touchstart') return;
       e.preventDefault();
       let touch = e.touches ? e.touches[0] : e;
       if (!touch) return;
-      
+
       let rect = joyContainer.getBoundingClientRect();
       let cx = rect.left + rect.width / 2;
       let cy = rect.top + rect.height / 2;
       let maxDist = rect.width / 2 - joyKnob.offsetWidth / 2;
-      
+
       let dx = touch.clientX - cx;
       let dy = touch.clientY - cy;
-      let distance = Math.min(Math.sqrt(dx*dx + dy*dy), maxDist);
+      let rawDist = Math.sqrt(dx*dx + dy*dy);
       let angle = Math.atan2(dy, dx);
-      
-      let nx = Math.cos(angle) * distance;
-      let ny = Math.sin(angle) * distance;
-      
-      joyKnob.style.transform = `translate(${nx}px, ${ny}px)`;
-      
-      let newCmd = 'S';
-      if (distance > maxDist * 0.3) { // 30% deadzone
-        let deg = angle * 180 / Math.PI;
-        if (deg >= -45 && deg <= 45) newCmd = 'R';
-        else if (deg > 45 && deg < 135) newCmd = 'B';
-        else if (deg >= 135 || deg <= -135) newCmd = 'L';
-        else newCmd = 'F';
-      }
-      
-      if (newCmd !== currentJoyCmd) {
-        currentJoyCmd = newCmd;
-        sendCmd(`CMD:DIR:${newCmd}`);
-      }
+      let clampedDist = Math.min(rawDist, maxDist);
+
+      // Move knob visually (clamped to boundary)
+      joyKnob.style.transform = `translate(${Math.cos(angle)*clampedDist}px, ${Math.sin(angle)*clampedDist}px)`;
+
+      const { left, right } = calcArcadeDrive(dx, dy, maxDist);
+      lastLeft = left;
+      lastRight = right;
+      joyActive = true;
     }
 
     function releaseJoy(e) {
       if(e) e.preventDefault();
       isDragging = false;
+      joyActive = false;
+      lastLeft = 0; lastRight = 0;
       joyKnob.style.transform = `translate(0px, 0px)`;
-      if (currentJoyCmd !== 'S') {
-        currentJoyCmd = 'S';
-        sendCmd('CMD:DIR:S');
-      }
+      sendCmd('CMD:DIR:S');
     }
+
+    // Send joystick commands at ~20Hz (every 50ms)
+    joyInterval = setInterval(() => {
+      if (joyActive) sendCmd(`CMD:JOY:${lastLeft}:${lastRight}:`);
+    }, 50);
 
     joyContainer.addEventListener('mousedown', (e) => { isDragging = true; handleJoy(e); });
     document.addEventListener('mousemove', handleJoy);
