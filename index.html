@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MIGO Robot Controller</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Outfit -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- Blockly -->
+  <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/msg/en.js"></script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    html {
+      height: -webkit-fill-available;
+    }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, #14b8a6 0%, #0f766e 50%, #f59e0b 100%);
+      color: white;
+      height: 100vh; /* Fallback */
+      height: 100dvh; /* Dynamic viewport height for mobile */
+      min-height: -webkit-fill-available;
+      width: 100vw;
+      margin: 0;
+      overflow: hidden;
+      touch-action: none; /* Prevent accidental scrolling */
+    }
+    
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    /* D-PAD STYLING */
+    .d-pad-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 8px;
+    }
+    
+    .d-btn {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 50%;
+      color: #0f766e;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.1s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .d-btn:active {
+      background: #f59e0b;
+      color: white;
+      transform: scale(0.9);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.8);
+    }
+    
+    #btn-up { grid-column: 2; grid-row: 1; }
+    #btn-left { grid-column: 1; grid-row: 2; }
+    #btn-stop { grid-column: 2; grid-row: 2; background: #ef4444; color: white; border-radius: 12px; font-size: 1rem; font-weight: bold; }
+    #btn-stop:active { background: #b91c1c; }
+    #btn-right { grid-column: 3; grid-row: 2; }
+    #btn-down { grid-column: 2; grid-row: 3; }
+
+    #blocklyDiv {
+      height: 100%;
+      width: 100%;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      background: white;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 10px; }
+
+    /* CRITICAL FIX FOR FLYOUT AND TAILWIND CONFLICT */
+    .blocklyWorkspace *, .blocklyFlyoutBackground, .blocklyWidgetDiv * {
+      box-sizing: content-box !important;
+      border-width: 0 !important;
+      outline: none !important;
+    }
+    .blocklySvg { display: block !important; }
+    .blocklyFlyout { z-index: 50; }
+    
+    /* Fix Blockly input fields (white text on white background issue) */
+    .blocklyHtmlInput {
+      color: #000 !important;
+      background-color: #fff !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LANDING PAGE -->
+  <div id="landingPage" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-teal-900/95 backdrop-blur-xl p-6 transition-opacity duration-500">
+    <h1 class="text-4xl md:text-6xl font-bold mb-8 text-center drop-shadow-lg">MIGO <span class="text-amber-400">Controller</span></h1>
+    
+    <div class="glass-panel p-8 max-w-md w-full text-center">
+      <div class="mb-6 p-4 bg-amber-500/20 border border-amber-400/50 rounded-xl text-amber-100 flex items-center justify-center gap-3">
+        <i class="ph-bold ph-device-mobile-camera text-3xl animate-pulse"></i>
+        <div class="text-left">
+          <p class="font-bold text-lg leading-tight text-amber-300">Landscape Mode Required</p>
+          <p class="text-sm opacity-90">Please rotate your device for the best experience.</p>
+        </div>
+      </div>
+
+      <label class="block text-left text-sm font-semibold mb-2 opacity-90 pl-1">Robot Name</label>
+      <input type="text" id="robotNameInput" placeholder="e.g. AstroBot" class="w-full p-4 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500 mb-8 text-xl font-semibold text-center transition-all">
+      
+      <button onclick="startApp()" class="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 rounded-xl font-bold text-2xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3">
+        <i class="ph-bold ph-rocket-launch"></i> Start
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="mainApp" class="hidden h-full w-full p-2 pb-6 md:p-3 flex flex-col landscape:flex-row gap-2 md:gap-3 box-border">
+    
+    <!-- Sidebar -->
+    <aside class="glass-panel p-3 pb-8 landscape:pb-3 flex flex-col w-full landscape:w-80 flex-shrink-0 overflow-y-auto">
+      
+      <div class="text-center mb-2 shrink-0 flex items-center justify-between landscape:flex-col landscape:justify-center">
+        <div>
+          <h1 id="robotTitle" class="text-2xl landscape:text-3xl font-bold tracking-tight">Robot</h1>
+          <p class="text-[10px] landscape:text-xs opacity-80" id="status">Status: Disconnected</p>
+        </div>
+        <button id="connectBtn" onclick="connectBLE()" class="glass-panel py-2 px-4 landscape:w-full landscape:mt-2 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/20 transition-colors">
+          <i class="ph-bold ph-bluetooth text-lg"></i> Connect
+        </button>
+      </div>
+
+      <!-- Control Area (Grows to take space) -->
+      <div class="flex-grow flex flex-col items-center justify-center min-h-[160px] landscape:min-h-[220px]">
+        <div class="flex items-center gap-1 mb-2 bg-black/20 p-1 rounded-lg">
+          <button id="modeDpadBtn" onclick="setControlMode('dpad')" class="px-4 py-1 rounded-md bg-white/30 text-xs font-bold transition-all shadow-sm">D-Pad</button>
+          <button id="modeJoyBtn" onclick="setControlMode('joystick')" class="px-4 py-1 rounded-md text-white/50 text-xs font-bold transition-all hover:text-white">Joystick</button>
+        </div>
+
+        <!-- D-PAD -->
+        <div id="dpadContainer" class="d-pad-container w-40 h-40 landscape:w-48 landscape:h-48">
+          <div id="btn-up" class="d-btn"><i class="ph-bold ph-caret-up"></i></div>
+          <div id="btn-left" class="d-btn"><i class="ph-bold ph-caret-left"></i></div>
+          <div id="btn-stop" class="d-btn">STOP</div>
+          <div id="btn-right" class="d-btn"><i class="ph-bold ph-caret-right"></i></div>
+          <div id="btn-down" class="d-btn"><i class="ph-bold ph-caret-down"></i></div>
+        </div>
+
+        <!-- JOYSTICK -->
+        <div id="joystickContainer" class="hidden w-40 h-40 landscape:w-48 landscape:h-48 relative bg-black/30 rounded-full border-[3px] border-white/20 flex items-center justify-center touch-none shadow-inner">
+          <div id="joystickKnob" class="w-16 h-16 landscape:w-20 landscape:h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.4)] absolute pointer-events-none transition-transform duration-75"></div>
+        </div>
+      </div>
+
+      <!-- Small Action Buttons -->
+      <div class="grid grid-cols-4 gap-2 shrink-0 mb-2">
+        <button onclick="saveProject()" class="bg-blue-600/80 hover:bg-blue-600 py-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center shadow-lg" title="Save Project">
+          <i class="ph-bold ph-floppy-disk text-lg mb-1"></i> Save
+        </button>
+        <button onclick="document.getElementById('loadInput').click()" class="bg-blue-600/80 hover:bg-blue-600 py-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center shadow-lg" title="Load Project">
+          <i class="ph-bold ph-folder-open text-lg mb-1"></i> Load
+        </button>
+        <button onclick="uploadProgram()" class="bg-amber-600/80 hover:bg-amber-600 py-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center shadow-lg" title="Upload Code">
+          <i class="ph-bold ph-upload-simple text-lg mb-1"></i> Upload
+        </button>
+        <button onclick="runAutoMode()" class="bg-teal-600/80 hover:bg-teal-600 py-2 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center shadow-lg" title="Run Auto">
+          <i class="ph-bold ph-play text-lg mb-1"></i> Run
+        </button>
+        <input type="file" id="loadInput" accept=".json,.xml" class="hidden" onchange="loadProject(event)">
+      </div>
+
+      <div class="h-16 landscape:h-24 shrink-0 flex flex-col">
+        <div id="serial-console" class="flex-grow bg-black/50 rounded-lg p-2 text-[10px] font-mono overflow-y-auto text-green-400 break-all shadow-inner border border-white/10">
+          > System Ready...<br>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Workspace -->
+    <main class="glass-panel p-0 m-0 flex-grow relative min-h-[50vh] landscape:min-h-0">
+      <div id="blocklyDiv" class="absolute inset-0 rounded-[1.5rem] overflow-hidden"></div>
+    </main>
+  </div>
+
+  <script>
+    // --- Landing Page Logic ---
+    function startApp() {
+      const name = document.getElementById('robotNameInput').value.trim() || 'MIGO Bot';
+      document.getElementById('robotTitle').innerText = name;
+      
+      const landing = document.getElementById('landingPage');
+      landing.style.opacity = '0';
+      setTimeout(() => {
+        landing.classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        Blockly.svgResize(workspace);
+      }, 500);
+    }
+
+    // --- BLE Logic ---
+    const serviceUuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+    const charWriteUuid = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+    const charReadUuid  = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+    let myCharacteristic, txCharacteristic;
+
+    function printToConsole(text) {
+      let consoleEl = document.getElementById('serial-console');
+      consoleEl.innerHTML += "> " + text + "<br>";
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    async function connectBLE() {
+      try {
+        printToConsole("Connecting...");
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{ name: 'Migo_Web_Bot' }],
+          optionalServices: [serviceUuid]
+        });
+        
+        device.addEventListener('gattserverdisconnected', () => {
+          document.getElementById('status').innerText = 'Status: Disconnected';
+          printToConsole("Disconnected.");
+        });
+
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(serviceUuid);
+        myCharacteristic = await service.getCharacteristic(charWriteUuid);
+        txCharacteristic = await service.getCharacteristic(charReadUuid);
+        
+        txCharacteristic.addEventListener('characteristicvaluechanged', (event) => {
+          let val = new TextDecoder().decode(event.target.value);
+          printToConsole(val.trim());
+        });
+        await txCharacteristic.startNotifications();
+
+        document.getElementById('status').innerText = 'Status: Connected!';
+        printToConsole("Connected successfully!");
+      } catch(e) {
+        console.error(e);
+        document.getElementById('status').innerText = 'Status: Connection Failed';
+        printToConsole("Connection failed.");
+      }
+    }
+
+    async function sendCmd(cmd) {
+      if(!myCharacteristic) return;
+      try {
+        await myCharacteristic.writeValueWithoutResponse(new TextEncoder().encode(cmd));
+      } catch(e) { console.error("BLE Error:", e); }
+    }
+
+    // --- Control Mode Toggle (D-Pad vs Joystick) ---
+    function setControlMode(mode) {
+      const dpadBtn = document.getElementById('modeDpadBtn');
+      const joyBtn = document.getElementById('modeJoyBtn');
+      const dpadCont = document.getElementById('dpadContainer');
+      const joyCont = document.getElementById('joystickContainer');
+
+      if (mode === 'dpad') {
+        dpadBtn.className = "px-4 py-1 rounded-md bg-white/30 text-xs font-bold transition-all shadow-sm";
+        joyBtn.className = "px-4 py-1 rounded-md text-white/50 text-xs font-bold transition-all hover:text-white";
+        dpadCont.classList.remove('hidden');
+        dpadCont.classList.add('grid'); // d-pad is grid
+        joyCont.classList.add('hidden');
+        joyCont.classList.remove('flex');
+      } else {
+        joyBtn.className = "px-4 py-1 rounded-md bg-white/30 text-xs font-bold transition-all shadow-sm";
+        dpadBtn.className = "px-4 py-1 rounded-md text-white/50 text-xs font-bold transition-all hover:text-white";
+        joyCont.classList.remove('hidden');
+        joyCont.classList.add('flex');
+        dpadCont.classList.add('hidden');
+        dpadCont.classList.remove('grid');
+      }
+    }
+
+    // --- D-Pad Logic ---
+    function attachDPad(id, cmd) {
+      const el = document.getElementById(id);
+      const press = () => sendCmd(`CMD:DIR:${cmd}`);
+      const release = () => { if(cmd !== 'S') sendCmd('CMD:DIR:S'); };
+      el.addEventListener('mousedown', press);
+      el.addEventListener('mouseup', release);
+      el.addEventListener('mouseleave', release);
+      el.addEventListener('touchstart', (e) => { e.preventDefault(); press(); });
+      el.addEventListener('touchend', (e) => { e.preventDefault(); release(); });
+    }
+    attachDPad('btn-up', 'F'); attachDPad('btn-down', 'B');
+    attachDPad('btn-left', 'L'); attachDPad('btn-right', 'R');
+    attachDPad('btn-stop', 'S');
+
+    // --- Virtual Joystick Logic ---
+    let currentJoyCmd = 'S';
+    const joyContainer = document.getElementById('joystickContainer');
+    const joyKnob = document.getElementById('joystickKnob');
+    let isDragging = false;
+
+    function handleJoy(e) {
+      if (!isDragging && e.type !== 'touchstart') return;
+      e.preventDefault();
+      let touch = e.touches ? e.touches[0] : e;
+      if (!touch) return;
+      
+      let rect = joyContainer.getBoundingClientRect();
+      let cx = rect.left + rect.width / 2;
+      let cy = rect.top + rect.height / 2;
+      let maxDist = rect.width / 2 - joyKnob.offsetWidth / 2;
+      
+      let dx = touch.clientX - cx;
+      let dy = touch.clientY - cy;
+      let distance = Math.min(Math.sqrt(dx*dx + dy*dy), maxDist);
+      let angle = Math.atan2(dy, dx);
+      
+      let nx = Math.cos(angle) * distance;
+      let ny = Math.sin(angle) * distance;
+      
+      joyKnob.style.transform = `translate(${nx}px, ${ny}px)`;
+      
+      let newCmd = 'S';
+      if (distance > maxDist * 0.3) { // 30% deadzone
+        let deg = angle * 180 / Math.PI;
+        if (deg >= -45 && deg <= 45) newCmd = 'R';
+        else if (deg > 45 && deg < 135) newCmd = 'B';
+        else if (deg >= 135 || deg <= -135) newCmd = 'L';
+        else newCmd = 'F';
+      }
+      
+      if (newCmd !== currentJoyCmd) {
+        currentJoyCmd = newCmd;
+        sendCmd(`CMD:DIR:${newCmd}`);
+      }
+    }
+
+    function releaseJoy(e) {
+      if(e) e.preventDefault();
+      isDragging = false;
+      joyKnob.style.transform = `translate(0px, 0px)`;
+      if (currentJoyCmd !== 'S') {
+        currentJoyCmd = 'S';
+        sendCmd('CMD:DIR:S');
+      }
+    }
+
+    joyContainer.addEventListener('mousedown', (e) => { isDragging = true; handleJoy(e); });
+    document.addEventListener('mousemove', handleJoy);
+    document.addEventListener('mouseup', releaseJoy);
+    joyContainer.addEventListener('touchstart', (e) => { isDragging = true; handleJoy(e); }, {passive: false});
+    joyContainer.addEventListener('touchmove', handleJoy, {passive: false});
+    joyContainer.addEventListener('touchend', releaseJoy);
+    joyContainer.addEventListener('touchcancel', releaseJoy);
+
+    // --- Blockly Logic ---
+    function runAutoMode() {
+      sendCmd('CMD:RUN');
+      printToConsole("Running program...");
+    }
+
+    Blockly.defineBlocksWithJsonArray([
+      { "type": "event_setup", "message0": "Setup %1 %2", "args0": [ { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" } ], "colour": 120 },
+      { "type": "event_loop", "message0": "Loop forever %1 %2", "args0": [ { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" } ], "colour": 120 },
+      { "type": "move_robot", "message0": "Move %1 at speed %2", "args0": [ { "type": "field_dropdown", "name": "DIR", "options": [ ["Forward", "F"], ["Backward", "B"], ["Spin Left", "L"], ["Spin Right", "R"] ] }, { "type": "field_number", "name": "SPD", "value": 150, "min": 0, "max": 255 } ], "previousStatement": null, "nextStatement": null, "colour": 230 },
+      { "type": "stop_robot", "message0": "Stop Moving", "previousStatement": null, "nextStatement": null, "colour": 230 },
+      { "type": "wait_time", "message0": "Wait %1 ms", "args0": [ { "type": "field_number", "name": "TIME", "value": 1000, "min": 0 } ], "previousStatement": null, "nextStatement": null, "colour": 60 },
+      { "type": "control_repeat", "message0": "Repeat %1 times %2 %3", "args0": [ { "type": "field_number", "name": "TIMES", "value": 5, "min": 1 }, { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" } ], "previousStatement": null, "nextStatement": null, "colour": 290 },
+      { "type": "def_func", "message0": "Define function %1 %2 %3", "args0": [ { "type": "field_input", "name": "NAME", "text": "myFunction" }, { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" } ], "colour": 290 },
+      { "type": "call_func", "message0": "Call function %1", "args0": [ { "type": "field_input", "name": "NAME", "text": "myFunction" } ], "previousStatement": null, "nextStatement": null, "colour": 290 },
+      { "type": "control_led", "message0": "Turn Built-in LED %1", "args0": [ { "type": "field_dropdown", "name": "STATE", "options": [ ["ON", "on"], ["OFF", "off"] ] } ], "previousStatement": null, "nextStatement": null, "colour": 160 },
+      { "type": "print_serial", "message0": "Print %1 to monitor", "args0": [ { "type": "field_input", "name": "TEXT", "text": "Hello!" } ], "previousStatement": null, "nextStatement": null, "colour": 160 }
+    ]);
+
+    const toolboxXml = `
+      <xml xmlns="https://developers.google.com/blockly/xml">
+        <block type="event_setup"></block>
+        <block type="event_loop"></block>
+        <block type="move_robot"></block>
+        <block type="stop_robot"></block>
+        <block type="wait_time"></block>
+        <block type="control_repeat"></block>
+        <block type="def_func"></block>
+        <block type="call_func"></block>
+        <block type="control_led"></block>
+        <block type="print_serial"></block>
+      </xml>
+    `;
+
+    const workspace = Blockly.inject('blocklyDiv', {
+      toolbox: toolboxXml,
+      zoom: { controls: true, wheel: true, startScale: 0.8, maxScale: 2, minScale: 0.3, scaleSpeed: 1.1 },
+      trashcan: true
+    });
+
+    function parseBlock(block) {
+      if(!block) return null;
+      let arr = [];
+      let current = block;
+      while(current) {
+        if(current.type === 'move_robot') arr.push({c: "M", d: current.getFieldValue("DIR"), s: Number(current.getFieldValue("SPD"))});
+        else if(current.type === 'stop_robot') arr.push({c: "M", d: "S", s: 0});
+        else if(current.type === 'wait_time') arr.push({c: "W", t: Number(current.getFieldValue("TIME"))});
+        else if(current.type === 'control_repeat') arr.push({c: "FOR", times: Number(current.getFieldValue("TIMES")), "do": parseBlock(current.getInputTargetBlock("DO")) || []});
+        else if(current.type === 'call_func') arr.push({c: "C", f: current.getFieldValue("NAME")});
+        else if(current.type === 'control_led') arr.push({c: "L", state: current.getFieldValue("STATE")});
+        else if(current.type === 'print_serial') arr.push({c: "P", text: current.getFieldValue("TEXT")});
+        current = current.getNextBlock();
+      }
+      return arr;
+    }
+
+    async function uploadProgram() {
+      if(!myCharacteristic) { alert("Please connect to the robot first!"); return; }
+      let json = { funcs: {} };
+      for(let b of workspace.getTopBlocks()) {
+        if(b.type === 'event_setup') json.funcs.setup = parseBlock(b.getInputTargetBlock("DO")) || [];
+        else if(b.type === 'event_loop') json.funcs.loop = parseBlock(b.getInputTargetBlock("DO")) || [];
+        else if(b.type === 'def_func') json.funcs[b.getFieldValue("NAME")] = parseBlock(b.getInputTargetBlock("DO")) || [];
+      }
+      let str = JSON.stringify(json);
+      printToConsole("Uploading script...");
+      try {
+        await sendCmd("<SCRIPT:START>");
+        for(let i=0; i<str.length; i+=50) {
+          await sendCmd(str.substring(i, i+50));
+          await new Promise(r => setTimeout(r, 50));
+        }
+        await sendCmd("<SCRIPT:END>");
+        printToConsole("Upload complete!");
+      } catch(e) { printToConsole("Upload failed."); }
+    }
+
+    function saveProject() {
+      let fileName = prompt("Enter a name for your project:", "migo_project");
+      if (!fileName) return; // User cancelled
+      if (!fileName.endsWith('.json')) fileName += '.json';
+
+      // Modern Blockly JSON serialization is much more reliable than XML
+      const state = Blockly.serialization.workspaces.save(workspace);
+      const jsonText = JSON.stringify(state, null, 2);
+      const a = document.createElement('a');
+      a.download = fileName;
+      a.href = URL.createObjectURL(new Blob([jsonText], {type: 'application/json'}));
+      a.click();
+      printToConsole(`Project saved as ${fileName}.`);
+    }
+
+    function loadProject(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          // Try loading as modern JSON format first
+          const state = JSON.parse(e.target.result);
+          workspace.clear();
+          Blockly.serialization.workspaces.load(state, workspace);
+          printToConsole("Project loaded successfully.");
+        } catch(err) {
+          // Fallback if the user uploaded an older .xml file
+          try {
+            workspace.clear();
+            const xml = Blockly.Xml.textToDom(e.target.result);
+            Blockly.Xml.domToWorkspace(xml, workspace);
+            printToConsole("Legacy XML project loaded.");
+          } catch(xmlErr) {
+            console.error(err, xmlErr);
+            printToConsole("Error: Could not read project file.");
+          }
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+  </script>
+</body>
+</html>
