@@ -1,8 +1,8 @@
 <!-- 
   MIGO Web Controller | Version: 1.1.0
   Change Log:
+  [May 16, 2026 04:08 PM] New Feature: Added Tutorials modal based on "The Caretaker Protocol" with levels, stories, and activities.
   [May 16, 2026 03:00 PM] Doc: Updated User Guide to include "Back" button, Custom Pins, and Explorer mode terminology.
-  [May 16, 2026 02:57 PM] New Feature: Added Custom Pin blocks to Inventor mode (allows using any ESP32 GPIO pin 0-39).
   [May 15, 2026 10:35 PM] New Feature: Proportional Joystick (Arcade Drive) with 20Hz command rate.
   [May 15, 2026 08:00 AM] New Feature: Category filter dropdown in Block Library header for Inventor tier.
   [May 14, 2026 02:30 PM] New Feature: Landing page with tier selection (Explorer/Inventor).
@@ -428,6 +428,39 @@
     </div>
   </div>
 
+  <!-- TUTORIALS MODAL -->
+  <div id="tutorialModal"
+    class="hidden absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div
+      class="glass-panel bg-amber-900/95 p-0 max-w-4xl w-full h-[85vh] overflow-hidden relative rounded-2xl border-amber-500/50 border-2 shadow-2xl flex">
+      <!-- Modal Header (Close) -->
+      <button onclick="document.getElementById('tutorialModal').classList.add('hidden')"
+        class="absolute top-4 right-4 z-10 bg-red-500 hover:bg-red-600 w-8 h-8 rounded-full font-bold flex items-center justify-center transition-transform active:scale-90 shadow-lg">
+        <i class="ph-bold ph-x text-white"></i>
+      </button>
+
+      <!-- Tutorial Sidebar -->
+      <aside class="w-1/4 bg-black/20 border-r border-white/10 p-4 overflow-y-auto hidden md:block">
+        <h3 class="text-amber-400 font-bold mb-4 uppercase tracking-widest text-xs">The Caretaker Protocol</h3>
+        <nav class="space-y-2">
+          <button onclick="showTutorial(0)" class="tut-nav-btn w-full text-left p-2 rounded-lg text-xs hover:bg-white/10 transition-colors" data-level="0">Level 0: The Blueprint</button>
+          <button onclick="showTutorial(1)" class="tut-nav-btn w-full text-left p-2 rounded-lg text-xs hover:bg-white/10 transition-colors" data-level="1">Level 1: First Steps</button>
+          <button onclick="showTutorial(2)" class="tut-nav-btn w-full text-left p-2 rounded-lg text-xs hover:bg-white/10 transition-colors" data-level="2">Level 2: Resilience</button>
+          <button onclick="showTutorial(3)" class="tut-nav-btn w-full text-left p-2 rounded-lg text-xs hover:bg-white/10 transition-colors" data-level="3">Level 3: Empathy</button>
+          <button onclick="showTutorial(4)" class="tut-nav-btn w-full text-left p-2 rounded-lg text-xs hover:bg-white/10 transition-colors" data-level="4">Level 4: Composure</button>
+          <button onclick="showTutorial(5)" class="tut-nav-btn w-full text-left p-2 rounded-lg text-xs hover:bg-white/10 transition-colors" data-level="5">Level 5: Harvest</button>
+        </nav>
+      </aside>
+
+      <!-- Tutorial Content Area -->
+      <main class="flex-1 p-6 overflow-y-auto bg-gradient-to-br from-amber-900/50 to-transparent">
+        <div id="tutorialContent" class="space-y-6 text-teal-50">
+          <!-- Dynamically filled -->
+        </div>
+      </main>
+    </div>
+  </div>
+
   <!-- MAIN APP -->
   <div id="mainApp"
     class="hidden h-full w-full p-2 pb-6 md:p-3 flex flex-col landscape:flex-row gap-2 md:gap-3 box-border">
@@ -447,6 +480,11 @@
           class="absolute top-0 right-0 text-white/60 hover:text-white transition-colors flex items-center justify-center w-6 h-6 rounded-full border-2 border-current"
           title="User Guide">
           <i class="ph-bold ph-question text-sm"></i>
+        </button>
+        <button id="tutBtn" onclick="openTutorials()"
+          class="absolute top-8 right-0 text-white/60 hover:text-white transition-colors flex items-center justify-center w-6 h-6 rounded-full border-2 border-current hidden"
+          title="Tutorials">
+          <i class="ph-bold ph-sparkle text-sm"></i>
         </button>
         <div>
           <h1 id="robotTitle" class="text-2xl landscape:text-3xl font-bold tracking-tight mt-1">Robot</h1>
@@ -588,9 +626,17 @@
       const filterBar = document.getElementById('categoryFilterBar');
       if (filterBar) filterBar.style.display = selectedTier === 1 ? 'none' : 'flex';
 
-      // Apply toolbox for selected tier
-      const toolboxXml = selectedTier === 1 ? getTier1Toolbox() : getTier2Toolbox();
-      workspace.updateToolbox(toolboxXml);
+      // Explorer vs Inventor Setup
+      const tutBtn = document.getElementById('tutBtn');
+      if (selectedTier === 1) {
+        document.body.style.background = "linear-gradient(135deg, #14b8a6 0%, #0f766e 50%, #f59e0b 100%)";
+        workspace.updateToolbox(getTier1Toolbox());
+        if (tutBtn) tutBtn.classList.remove('hidden');
+      } else {
+        document.body.style.background = "linear-gradient(135deg, #4f46e5 0%, #3730a3 50%, #1e1b4b 100%)";
+        workspace.updateToolbox(getTier2Toolbox());
+        if (tutBtn) tutBtn.classList.add('hidden');
+      }
 
       const landing = document.getElementById('landingPage');
       landing.style.opacity = '0';
@@ -614,6 +660,104 @@
       // Cleanup internal states
       isUploading = false;
       pendingAck = null;
+    }
+
+    // --- Tutorials Data & Logic ---
+    const tutorials = [
+      {
+        title: "Level 0: The Blueprint of Responsibility",
+        focus: "Patience and Precision",
+        story: "The Great Blight had come. A hot, choking dust covered the once-green town. The Community Garden, the heart of the town, was slowly dying. You knew you had to save it. You only had one chance: build a helper bot, MIGO, to bring the water. Rushing only led to broken pieces. You took a deep, slow breath and built the robot slowly until MIGO was perfect.",
+        activity: "1. Sort the parts: Group the wheels, wires, and body pieces.<br>2. Build: Snap the main body together gently.<br>3. Power: Plug the battery wire into the board.",
+        code: "No blocks yet! This is about the physical robot.",
+        reflection: "Why should we build MIGO slowly and carefully? How does being organized help us?"
+      },
+      {
+        title: "Level 1: The First Steps of Accountability",
+        focus: "Self-Control and Accountability",
+        story: "MIGO was alive! You grabbed the controller, shaking with excitement. 'Go, MIGO, GO!' you yelled, smashing buttons. CRASH! MIGO slammed to a stop just inches from the last seedling. The robot moved, but you were the one who almost killed the plant. You chose to become a careful pilot.",
+        activity: "1. Connect: Open the app and tap 'Connect'.<br>2. Straight Line: Use the D-Pad to drive forward and backward on a line.<br>3. Avoid Plants: Use the Joystick to steer around obstacles gently.",
+        code: "Try using the <b>D-Pad</b> for precision and the <b>Joystick</b> for smooth turns!",
+        reflection: "When the robot crashed in the story, whose fault was it? How can we be better pilots?"
+      },
+      {
+        title: "Level 2: The Seedling Path of Resilience",
+        focus: "Resilience and Methodical Thinking",
+        story: "The garden needed exact doses of water. Your hands shook, making mistakes. 'The human is too slow,' you thought. You wrote your first code: Move, Wait, Stop. MIGO stopped too soon! You wanted to quit, but you tried again and again, changing the numbers until it was perfect.",
+        activity: "1. Start: Use the <b>Setup</b> block.<br>2. Movement: Attach <b>Move Forward</b>.<br>3. Precision: Add a <b>Wait</b> block and change the seconds until MIGO stops exactly on the target.",
+        code: "<b>Setup</b> -> <b>Move Forward</b> -> <b>Wait (1.5) seconds</b> -> <b>Stop Moving</b>",
+        reflection: "Why do we change the number in the 'Wait' block? How did the boy in the story show he wouldn't give up?"
+      },
+      {
+        title: "Level 3: The Shaded Grove of Empathy",
+        focus: "Empathy and Keen Observation",
+        story: "MIGO drove into a pitch-black cave where a forgotten sapling was shivering. You turned on MIGO's bright searchlight and saw the tiny plant. You felt a rush of sadness for the plant and learned MIGO was not just a tool, but your eyes for a hidden world.",
+        activity: "1. Searchlight: Use the <b>Turn Light ON</b> block.<br>2. Message: Use the <b>Say</b> block to report your findings.<br>3. Explore: Drive into a dark area, turn on the light, and 'Say' hello to the plant.",
+        code: "<b>Move</b> -> <b>Wait</b> -> <b>Stop</b> -> <b>Turn Light ON</b> -> <b>Say 'Found it!'</b>",
+        reflection: "How did MIGO help the boy find the hidden plant? Why is it important to use our tools to care for things?"
+      },
+      {
+        title: "Level 4: The Drought Response",
+        focus: "Composure Under Pressure",
+        story: "A fierce wind threatened the whole farm! Writing blocks for every plant would take a year. You felt panic. Then you remembered the 'Loop' block. MIGO became a machine of endless effort, racing up and down the rows.",
+        activity: "1. Repeat: Put your movement code inside a <b>Repeat</b> block.<br>2. Efficiency: Use <b>Loop forever</b> to make MIGO water a long row of plants without stopping.",
+        code: "<b>Loop forever</b> [ <b>Move</b> -> <b>Wait</b> -> <b>Stop</b> -> <b>Wait</b> ]",
+        reflection: "What does the 'Loop' block do for us? How did staying calm help the boy save the plants?"
+      },
+      {
+        title: "Level 5: The Harvest",
+        focus: "Groundedness and Gratitude",
+        story: "The Great Blight was over! The garden was safe. You gave MIGO a special command called 'Happy Plant.' The robot drove to the center and flashed its light. You realized your smart brain and your robot helped save the world.",
+        activity: "1. Create: Define a <b>Function</b> called 'Wink' (Light ON, Wait, Light OFF).<br>2. Use: Under <b>Setup</b>, use the <b>Call Function</b> block to run your 'Wink'.",
+        code: "<b>Define function 'Wink'</b> [ <b>Light ON</b> -> <b>Wait</b> -> <b>Light OFF</b> ] <br><b>Call function 'Wink'</b>",
+        reflection: "Why is a 'Function' block useful? What did the boy learn about his robot at the end?"
+      }
+    ];
+
+    function openTutorials() {
+      document.getElementById('tutorialModal').classList.remove('hidden');
+      showTutorial(0);
+    }
+
+    function showTutorial(level) {
+      const t = tutorials[level];
+      const content = document.getElementById('tutorialContent');
+      
+      content.innerHTML = `
+        <div>
+          <h2 class="text-3xl font-bold text-amber-400 mb-1">${t.title}</h2>
+          <p class="text-amber-200 text-xs font-bold uppercase tracking-tighter">Focus: ${t.focus}</p>
+        </div>
+        
+        <div class="bg-black/20 p-4 rounded-xl border-l-4 border-amber-500 italic text-sm">
+          "${t.story}"
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-teal-900/40 p-4 rounded-xl border border-white/5">
+            <h4 class="font-bold text-amber-400 mb-2 flex items-center gap-2"><i class="ph ph-list-numbers"></i> Activity</h4>
+            <p class="text-xs leading-relaxed">${t.activity}</p>
+          </div>
+          <div class="bg-teal-900/40 p-4 rounded-xl border border-white/5">
+            <h4 class="font-bold text-teal-400 mb-2 flex items-center gap-2"><i class="ph ph-code"></i> Block Hint</h4>
+            <p class="text-xs font-mono text-teal-200">${t.code}</p>
+          </div>
+        </div>
+
+        <div class="bg-amber-500/10 p-4 rounded-xl border border-amber-500/30">
+          <h4 class="font-bold text-amber-500 mb-2 flex items-center gap-2"><i class="ph ph-chats-circle"></i> Reflect</h4>
+          <p class="text-xs italic text-amber-100">${t.reflection}</p>
+        </div>
+      `;
+
+      // Update Sidebar Active State
+      document.querySelectorAll('.tut-nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-level') == level) {
+          btn.classList.add('bg-amber-500', 'text-black', 'font-bold');
+        } else {
+          btn.classList.remove('bg-amber-500', 'text-black', 'font-bold');
+        }
+      });
     }
 
     // --- BLE Logic ---
