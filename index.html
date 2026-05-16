@@ -1,10 +1,21 @@
+<!-- 
+  MIGO Web Controller | Version: 1.1.0
+  Change Log:
+  [May 16, 2026 03:00 PM] Doc: Updated User Guide to include "Back" button, Custom Pins, and Explorer mode terminology.
+  [May 16, 2026 02:57 PM] New Feature: Added Custom Pin blocks to Inventor mode (allows using any ESP32 GPIO pin 0-39).
+  [May 15, 2026 10:35 PM] New Feature: Proportional Joystick (Arcade Drive) with 20Hz command rate.
+  [May 15, 2026 08:00 AM] New Feature: Category filter dropdown in Block Library header for Inventor tier.
+  [May 14, 2026 02:30 PM] New Feature: Landing page with tier selection (Explorer/Inventor).
+  [May 14, 2026 12:52 PM] New Feature: Initial MIGO Blockly Web Controller with BLE and D-Pad.
+-->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>MIGO Robot Controller</title>
-  
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Outfit -->
@@ -20,19 +31,23 @@
     html {
       height: -webkit-fill-available;
     }
+
     body {
       font-family: 'Outfit', sans-serif;
       background: linear-gradient(135deg, #14b8a6 0%, #0f766e 50%, #f59e0b 100%);
       color: white;
-      height: 100vh; /* Fallback */
-      height: 100dvh; /* Dynamic viewport height for mobile */
+      height: 100vh;
+      /* Fallback */
+      height: 100dvh;
+      /* Dynamic viewport height for mobile */
       min-height: -webkit-fill-available;
       width: 100vw;
       margin: 0;
       overflow: hidden;
-      touch-action: none; /* Prevent accidental scrolling */
+      touch-action: none;
+      /* Prevent accidental scrolling */
     }
-    
+
     .glass-panel {
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(16px);
@@ -41,17 +56,68 @@
       border-radius: 1.5rem;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
     }
-    .blocklyFlyoutBackground { fill: #0f172a; fill-opacity: 0.8; }
-    .blocklyFlyout { border-right: 1px solid rgba(255,255,255,0.1); }
-    .blocklyToolboxDiv { background-color: transparent; }
-    
+
+    .blocklyFlyoutBackground {
+      fill: #0f172a;
+      fill-opacity: 0.8;
+    }
+
+    .blocklyFlyout {
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .blocklyToolboxDiv {
+      background-color: transparent;
+    }
+
     /* Flyout Label Styling */
-    .label-events text { fill: #4ade80 !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
-    .label-logic text { fill: #60a5fa !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
-    .label-movement text { fill: #2dd4bf !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
-    .label-sensors text { fill: #fbbf24 !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
-    .label-hardware text { fill: #c084fc !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
-    .label-functions text { fill: #f472b6 !important; font-weight: 800 !important; font-size: 15px !important; font-family: 'Outfit', sans-serif !important; letter-spacing: 1px; }
+    .label-events text {
+      fill: #4ade80 !important;
+      font-weight: 800 !important;
+      font-size: 15px !important;
+      font-family: 'Outfit', sans-serif !important;
+      letter-spacing: 1px;
+    }
+
+    .label-logic text {
+      fill: #60a5fa !important;
+      font-weight: 800 !important;
+      font-size: 15px !important;
+      font-family: 'Outfit', sans-serif !important;
+      letter-spacing: 1px;
+    }
+
+    .label-movement text {
+      fill: #2dd4bf !important;
+      font-weight: 800 !important;
+      font-size: 15px !important;
+      font-family: 'Outfit', sans-serif !important;
+      letter-spacing: 1px;
+    }
+
+    .label-sensors text {
+      fill: #fbbf24 !important;
+      font-weight: 800 !important;
+      font-size: 15px !important;
+      font-family: 'Outfit', sans-serif !important;
+      letter-spacing: 1px;
+    }
+
+    .label-hardware text {
+      fill: #c084fc !important;
+      font-weight: 800 !important;
+      font-size: 15px !important;
+      font-family: 'Outfit', sans-serif !important;
+      letter-spacing: 1px;
+    }
+
+    .label-functions text {
+      fill: #f472b6 !important;
+      font-weight: 800 !important;
+      font-size: 15px !important;
+      font-family: 'Outfit', sans-serif !important;
+      letter-spacing: 1px;
+    }
 
     /* D-PAD STYLING */
     .d-pad-container {
@@ -60,7 +126,7 @@
       grid-template-rows: repeat(3, 1fr);
       gap: 8px;
     }
-    
+
     .d-btn {
       background: rgba(255, 255, 255, 0.85);
       border-radius: 50%;
@@ -72,21 +138,49 @@
       cursor: pointer;
       user-select: none;
       transition: all 0.1s;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
+
     .d-btn:active {
       background: #f59e0b;
       color: white;
       transform: scale(0.9);
       box-shadow: 0 0 15px rgba(245, 158, 11, 0.8);
     }
-    
-    #btn-up { grid-column: 2; grid-row: 1; }
-    #btn-left { grid-column: 1; grid-row: 2; }
-    #btn-stop { grid-column: 2; grid-row: 2; background: #ef4444; color: white; border-radius: 12px; font-size: 1rem; font-weight: bold; }
-    #btn-stop:active { background: #b91c1c; }
-    #btn-right { grid-column: 3; grid-row: 2; }
-    #btn-down { grid-column: 2; grid-row: 3; }
+
+    #btn-up {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    #btn-left {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    #btn-stop {
+      grid-column: 2;
+      grid-row: 2;
+      background: #ef4444;
+      color: white;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    #btn-stop:active {
+      background: #b91c1c;
+    }
+
+    #btn-right {
+      grid-column: 3;
+      grid-row: 2;
+    }
+
+    #btn-down {
+      grid-column: 2;
+      grid-row: 3;
+    }
 
     #blocklyDiv {
       height: 100%;
@@ -97,19 +191,37 @@
     }
 
     /* Custom Scrollbars */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 10px; }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 10px;
+    }
 
     /* CRITICAL FIX FOR FLYOUT AND TAILWIND CONFLICT */
-    .blocklyWorkspace *, .blocklyFlyoutBackground, .blocklyWidgetDiv * {
+    .blocklyWorkspace *,
+    .blocklyFlyoutBackground,
+    .blocklyWidgetDiv * {
       box-sizing: content-box !important;
       border-width: 0 !important;
       outline: none !important;
     }
-    .blocklySvg { display: block !important; }
-    .blocklyFlyout { z-index: 50; }
-    
+
+    .blocklySvg {
+      display: block !important;
+    }
+
+    .blocklyFlyout {
+      z-index: 50;
+    }
+
     /* Fix Blockly input fields (white text on white background issue) */
     .blocklyHtmlInput {
       color: #000 !important;
@@ -117,25 +229,30 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- LANDING PAGE -->
-  <div id="landingPage" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-teal-900/95 backdrop-blur-xl p-4 md:p-6 transition-opacity duration-500">
-    <h1 class="text-4xl md:text-6xl font-bold mb-2 text-center drop-shadow-lg">MIGO <span class="text-amber-400">Controller</span></h1>
+  <div id="landingPage"
+    class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-teal-900/95 backdrop-blur-xl p-4 md:p-6 transition-opacity duration-500">
+    <h1 class="text-4xl md:text-6xl font-bold mb-2 text-center drop-shadow-lg">MIGO <span
+        class="text-amber-400">Controller</span></h1>
     <p class="text-white/60 mb-6 text-sm md:text-base">Choose your coding level to get started!</p>
 
     <div class="glass-panel p-6 max-w-2xl w-full">
 
       <!-- Robot Name -->
       <label class="block text-left text-sm font-semibold mb-1 opacity-90 pl-1">My Robot's Name</label>
-      <input type="text" id="robotNameInput" placeholder="e.g. AstroBot" class="w-full p-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500 mb-6 text-lg font-semibold text-center transition-all">
+      <input type="text" id="robotNameInput" placeholder="e.g. AstroBot"
+        class="w-full p-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500 mb-6 text-lg font-semibold text-center transition-all">
 
       <!-- Tier Selection -->
       <p class="text-sm font-bold text-white/70 mb-3 text-center uppercase tracking-widest">Pick Your Level</p>
       <div class="grid grid-cols-2 gap-4 mb-6">
 
         <!-- Tier 1: Explorer -->
-        <div id="tier1Card" onclick="selectTier(1)" class="tier-card cursor-pointer rounded-2xl p-4 border-2 border-white/20 bg-white/10 hover:bg-green-500/20 hover:border-green-400 transition-all active:scale-95 text-center">
+        <div id="tier1Card" onclick="selectTier(1)"
+          class="tier-card cursor-pointer rounded-2xl p-4 border-2 border-white/20 bg-white/10 hover:bg-green-500/20 hover:border-green-400 transition-all active:scale-95 text-center">
           <div class="text-4xl mb-2">🚀</div>
           <h3 class="text-lg font-bold text-green-300">Explorer</h3>
           <p class="text-xs text-white/70 mt-1">Simple blocks for<br>moving your robot!</p>
@@ -148,7 +265,8 @@
         </div>
 
         <!-- Tier 2: Inventor -->
-        <div id="tier2Card" onclick="selectTier(2)" class="tier-card cursor-pointer rounded-2xl p-4 border-2 border-white/20 bg-white/10 hover:bg-amber-500/20 hover:border-amber-400 transition-all active:scale-95 text-center">
+        <div id="tier2Card" onclick="selectTier(2)"
+          class="tier-card cursor-pointer rounded-2xl p-4 border-2 border-white/20 bg-white/10 hover:bg-amber-500/20 hover:border-amber-400 transition-all active:scale-95 text-center">
           <div class="text-4xl mb-2">🔬</div>
           <h3 class="text-lg font-bold text-amber-300">Inventor</h3>
           <p class="text-xs text-white/70 mt-1">Sensors, logic &amp; full<br>control of your robot!</p>
@@ -162,33 +280,46 @@
       </div>
 
       <!-- Start Button -->
-      <button id="startBtn" onclick="startApp()" disabled class="w-full py-4 bg-gradient-to-r from-gray-500 to-gray-600 rounded-xl font-bold text-xl shadow-xl transition-all flex items-center justify-center gap-3 opacity-50 cursor-not-allowed" id="startBtn">
+      <button id="startBtn" onclick="startApp()" disabled
+        class="w-full py-4 bg-gradient-to-r from-gray-500 to-gray-600 rounded-xl font-bold text-xl shadow-xl transition-all flex items-center justify-center gap-3 opacity-50 cursor-not-allowed"
+        id="startBtn">
         <i class="ph-bold ph-rocket-launch"></i> Choose a Level First!
       </button>
     </div>
   </div>
 
   <!-- GUIDE MODAL -->
-  <div id="guideModal" class="hidden absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="glass-panel bg-teal-900/95 p-6 max-w-2xl w-full max-h-full overflow-y-auto relative rounded-2xl border-amber-500/50 border-2 shadow-2xl">
-      <button onclick="document.getElementById('guideModal').classList.add('hidden')" class="absolute top-4 right-4 bg-red-500 hover:bg-red-600 w-8 h-8 rounded-full font-bold flex items-center justify-center transition-transform active:scale-90"><i class="ph-bold ph-x text-white"></i></button>
-      
+  <div id="guideModal"
+    class="hidden absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div
+      class="glass-panel bg-teal-900/95 p-6 max-w-2xl w-full max-h-full overflow-y-auto relative rounded-2xl border-amber-500/50 border-2 shadow-2xl">
+      <button onclick="document.getElementById('guideModal').classList.add('hidden')"
+        class="absolute top-4 right-4 bg-red-500 hover:bg-red-600 w-8 h-8 rounded-full font-bold flex items-center justify-center transition-transform active:scale-90"><i
+          class="ph-bold ph-x text-white"></i></button>
+
       <h2 class="text-3xl font-bold mb-4 text-amber-400 border-b border-amber-400/30 pb-2">MIGO User Guide</h2>
-      
+
       <div class="space-y-4 text-sm leading-relaxed text-teal-50">
         <section>
-          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-bluetooth text-blue-400"></i> Connecting</h3>
-          <p>Turn on MIGO, then tap the <b>Connect</b> button on the left. Select "Migo_Web_Bot" from the popup menu.</p>
-        </section>
-        
-        <section>
-          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-puzzle-piece text-amber-400"></i> Coding Basics</h3>
-          <p>Drag blocks from the left menu into the workspace. Your code must be snapped inside the <b>Setup</b> block (runs once) or the <b>Loop</b> block (runs forever) to work.</p>
+          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-bluetooth text-blue-400"></i> Connecting
+          </h3>
+          <p>Turn on MIGO, then tap the <b>Connect</b> button on the left. Select "Migo_Web_Bot" from the popup menu.
+          </p>
         </section>
 
         <section>
-          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-plug text-green-400"></i> Hardware Plugs</h3>
-          <p>MIGO uses simple Plugs instead of complicated pin numbers. Connect your wires to these pins on the ESP32 board:</p>
+          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-puzzle-piece text-amber-400"></i> Coding
+            Basics</h3>
+          <p>Drag blocks from the left menu into the workspace. Your code must be snapped inside the <b>Setup</b> block
+            (runs once) or the <b>Loop</b> block (runs forever) to work. Use the <b>Back (<)</b> button in the sidebar
+            header to return to the landing page and switch between Explorer and Inventor modes!</p>
+        </section>
+
+        <section>
+          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-plug text-green-400"></i> Hardware Plugs
+          </h3>
+          <p>MIGO uses simple Plugs instead of complicated pin numbers. Connect your wires to these pins on the ESP32
+            board:</p>
           <ul class="list-disc pl-5 mt-1 space-y-1 text-xs md:text-sm">
             <li><b>Plug A (Pin 34):</b> Use for sensors (Buttons, Knobs, Light Sensors).</li>
             <li><b>Plug B (Pin 35):</b> Use for sensors.</li>
@@ -199,22 +330,26 @@
         </section>
 
         <section>
-          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-upload-simple text-purple-400"></i> Running Your Code</h3>
-          <p>Click <b>Upload</b> to send the code to MIGO. It will save it to memory so you never lose it! Then click <b>Run</b> to watch MIGO execute your commands.</p>
+          <h3 class="text-xl font-bold text-white mb-1"><i class="ph-fill ph-upload-simple text-purple-400"></i> Running
+            Your Code</h3>
+          <p>Click <b>Upload</b> to send the code to MIGO. It will save it to memory so you never lose it! Then click
+            <b>Run</b> to watch MIGO execute your commands.</p>
         </section>
       </div>
 
       <!-- COMPREHENSIVE BLOCK GUIDE -->
       <div class="mt-8 pt-6 border-t border-amber-400/30">
         <h2 class="text-2xl font-bold mb-4 text-amber-400">Block Library Reference</h2>
-        
+
         <div class="space-y-4">
           <!-- Events -->
           <section class="bg-white/5 rounded-xl p-4 border border-white/10">
             <h3 class="text-lg font-bold text-green-400 mb-2 border-b border-white/10 pb-1">Starting Events</h3>
             <ul class="space-y-2 text-sm text-teal-50">
-              <li><span class="font-bold text-green-300">Setup:</span> Code placed here runs exactly <b>once</b> when MIGO starts. Great for setting up pins or initial variables.</li>
-              <li><span class="font-bold text-green-300">Loop forever:</span> Code here repeats continuously until you turn MIGO off. This is where your main brain logic goes!</li>
+              <li><span class="font-bold text-green-300">Setup:</span> Code placed here runs exactly <b>once</b> when
+                MIGO starts. Great for setting up pins or initial variables.</li>
+              <li><span class="font-bold text-green-300">Loop forever:</span> Code here repeats continuously until you
+                turn MIGO off. This is where your main brain logic goes!</li>
             </ul>
           </section>
 
@@ -222,10 +357,14 @@
           <section class="bg-white/5 rounded-xl p-4 border border-white/10">
             <h3 class="text-lg font-bold text-blue-400 mb-2 border-b border-white/10 pb-1">Logic & Control</h3>
             <ul class="space-y-2 text-sm text-teal-50">
-              <li><span class="font-bold text-blue-300">If / Do:</span> Makes a decision. If a condition is true, it does the action inside. Click the blue gear icon on the block to add 'Else' or 'Else If' branches!</li>
-              <li><span class="font-bold text-blue-300">Compare (=, &lt;, &gt;):</span> Used inside 'If' blocks to compare two values (e.g. Distance &lt; 10).</li>
-              <li><span class="font-bold text-blue-300">Repeat X times:</span> A loop that repeats specific code a certain number of times before moving on.</li>
-              <li><span class="font-bold text-blue-300">Wait ms:</span> Pauses the robot's brain for a specific number of milliseconds (1000 ms = 1 second).</li>
+              <li><span class="font-bold text-blue-300">If / Do:</span> Makes a decision. If a condition is true, it
+                does the action inside. Click the blue gear icon on the block to add 'Else' or 'Else If' branches!</li>
+              <li><span class="font-bold text-blue-300">Compare (=, &lt;, &gt;):</span> Used inside 'If' blocks to
+                compare two values (e.g. Distance &lt; 10).</li>
+              <li><span class="font-bold text-blue-300">Repeat X times:</span> A loop that repeats specific code a
+                certain number of times before moving on.</li>
+              <li><span class="font-bold text-blue-300">Wait:</span> Pauses the robot's brain. In <b>Explorer</b> mode,
+                this uses <b>Seconds</b>. In <b>Inventor</b> mode, it uses <b>ms</b> (1000 ms = 1 second).</li>
             </ul>
           </section>
 
@@ -233,8 +372,10 @@
           <section class="bg-white/5 rounded-xl p-4 border border-white/10">
             <h3 class="text-lg font-bold text-indigo-400 mb-2 border-b border-white/10 pb-1">Robot Movement</h3>
             <ul class="space-y-2 text-sm text-teal-50">
-              <li><span class="font-bold text-indigo-300">Move at speed:</span> Starts MIGO's motors. Speed goes from 0 (stopped) to 255 (maximum speed).</li>
-              <li><span class="font-bold text-indigo-300">Stop Moving:</span> Immediately stops all motors. Remember to use this to prevent MIGO from running away forever!</li>
+              <li><span class="font-bold text-indigo-300">Move at speed:</span> Starts MIGO's motors. Speed goes from 0
+                (stopped) to 255 (maximum speed).</li>
+              <li><span class="font-bold text-indigo-300">Stop Moving:</span> Immediately stops all motors. Remember to
+                use this to prevent MIGO from running away forever!</li>
             </ul>
           </section>
 
@@ -242,11 +383,15 @@
           <section class="bg-white/5 rounded-xl p-4 border border-white/10">
             <h3 class="text-lg font-bold text-amber-500 mb-2 border-b border-white/10 pb-1">Sensors</h3>
             <ul class="space-y-2 text-sm text-teal-50">
-              <li><span class="font-bold text-amber-300">Ultrasonic Distance:</span> Returns the distance (in cm) of objects in front of MIGO.</li>
-              <li><span class="font-bold text-amber-300">IR Sensor:</span> Returns <i>True</i> if it sees a dark line, <i>False</i> if not.</li>
+              <li><span class="font-bold text-amber-300">Ultrasonic Distance:</span> Returns the distance (in cm) of
+                objects in front of MIGO.</li>
+              <li><span class="font-bold text-amber-300">IR Sensor:</span> Returns <i>True</i> if it sees a dark line,
+                <i>False</i> if not.</li>
               <li><span class="font-bold text-amber-300">Button:</span> Returns <i>True</i> if pressed.</li>
-              <li><span class="font-bold text-amber-300">Knob / Light Level:</span> Automatically converts raw electricity into a smooth 0-100% scale.</li>
-              <li><span class="font-bold text-amber-300">Read Digital/Analog:</span> Generic blocks for custom sensors! Digital returns True/False. Analog returns raw 0-4095.</li>
+              <li><span class="font-bold text-amber-300">Knob / Light Level:</span> Automatically converts raw
+                electricity into a smooth 0-100% scale.</li>
+              <li><span class="font-bold text-amber-300">Read Digital/Analog:</span> Generic blocks for custom sensors!
+                Digital returns True/False. Analog returns raw 0-4095.</li>
             </ul>
           </section>
 
@@ -254,9 +399,14 @@
           <section class="bg-white/5 rounded-xl p-4 border border-white/10">
             <h3 class="text-lg font-bold text-purple-400 mb-2 border-b border-white/10 pb-1">Hardware Plugs</h3>
             <ul class="space-y-2 text-sm text-teal-50">
-              <li><span class="font-bold text-purple-300">Set Plug Mode:</span> Always put this in 'Setup'! Tells the brain if a plug is an Input (sensor) or Output (light/buzzer).</li>
-              <li><span class="font-bold text-purple-300">Write Digital:</span> Sends full power (High) or no power (Low) to an output plug.</li>
-              <li><span class="font-bold text-purple-300">Write Analog:</span> Sends partial power to an output plug using PWM (from 0 to 255). Great for fading LEDs or controlling speed.</li>
+              <li><span class="font-bold text-purple-300">Set Plug Mode:</span> Always put this in 'Setup'! Tells the
+                brain if a plug is an Input (sensor) or Output (light/buzzer).</li>
+              <li><span class="font-bold text-purple-300">Write Digital:</span> Sends full power (High) or no power
+                (Low) to an output plug.</li>
+              <li><span class="font-bold text-purple-300">Write Analog:</span> Sends partial power to an output plug
+                using PWM (from 0 to 255). Great for fading LEDs or controlling speed.</li>
+              <li><span class="font-bold text-purple-300">Custom Pin Blocks:</span> Found in Inventor mode, these let
+                you type in <b>any</b> pin number (0-39) for advanced electronics projects!</li>
             </ul>
           </section>
 
@@ -264,9 +414,12 @@
           <section class="bg-white/5 rounded-xl p-4 border border-white/10">
             <h3 class="text-lg font-bold text-pink-400 mb-2 border-b border-white/10 pb-1">Functions & Print</h3>
             <ul class="space-y-2 text-sm text-teal-50">
-              <li><span class="font-bold text-pink-300">Define Function:</span> Groups blocks into a custom reusable command (e.g. 'Dance').</li>
+              <li><span class="font-bold text-pink-300">Define Function:</span> Groups blocks into a custom reusable
+                command (e.g. 'Dance').</li>
               <li><span class="font-bold text-pink-300">Call Function:</span> Runs the custom command you created.</li>
-              <li><span class="font-bold text-pink-300">Print to monitor:</span> Sends data back to your screen. You can plug a sensor block inside it to view live readings in the bottom-left window!</li>
+              <li><span class="font-bold text-pink-300">Say / Print to monitor:</span> Sends data back to your screen.
+                In <b>Explorer</b> mode, this is called <b>Say</b>. Plug a sensor block inside it to view live readings
+                in the bottom-left window!</li>
             </ul>
           </section>
         </div>
@@ -276,20 +429,31 @@
   </div>
 
   <!-- MAIN APP -->
-  <div id="mainApp" class="hidden h-full w-full p-2 pb-6 md:p-3 flex flex-col landscape:flex-row gap-2 md:gap-3 box-border">
-    
+  <div id="mainApp"
+    class="hidden h-full w-full p-2 pb-6 md:p-3 flex flex-col landscape:flex-row gap-2 md:gap-3 box-border">
+
     <!-- Sidebar -->
-    <aside class="glass-panel p-3 pb-8 landscape:pb-3 flex flex-col w-full landscape:w-80 flex-shrink-0 overflow-y-auto">
-      
-      <div class="text-center mb-2 shrink-0 flex items-center justify-between landscape:flex-col landscape:justify-center relative">
-        <button onclick="document.getElementById('guideModal').classList.remove('hidden')" class="absolute top-0 right-0 text-white/60 hover:text-white transition-colors flex items-center justify-center w-6 h-6 rounded-full border-2 border-current" title="User Guide">
+    <aside
+      class="glass-panel p-3 pb-8 landscape:pb-3 flex flex-col w-full landscape:w-80 flex-shrink-0 overflow-y-auto">
+
+      <div
+        class="text-center mb-2 shrink-0 flex items-center justify-between landscape:flex-col landscape:justify-center relative">
+        <button onclick="goBackToLanding()"
+          class="absolute top-0 left-0 text-white/60 hover:text-white transition-colors flex items-center justify-center w-6 h-6 rounded-full border-2 border-current"
+          title="Back to Landing Page">
+          <i class="ph-bold ph-caret-left text-sm"></i>
+        </button>
+        <button onclick="document.getElementById('guideModal').classList.remove('hidden')"
+          class="absolute top-0 right-0 text-white/60 hover:text-white transition-colors flex items-center justify-center w-6 h-6 rounded-full border-2 border-current"
+          title="User Guide">
           <i class="ph-bold ph-question text-sm"></i>
         </button>
         <div>
           <h1 id="robotTitle" class="text-2xl landscape:text-3xl font-bold tracking-tight mt-1">Robot</h1>
           <p class="text-[10px] landscape:text-xs opacity-80" id="status">Status: Disconnected</p>
         </div>
-        <button id="connectBtn" onclick="connectBLE()" class="glass-panel py-2 px-4 landscape:w-full landscape:mt-2 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/20 transition-colors">
+        <button id="connectBtn" onclick="connectBLE()"
+          class="glass-panel py-2 px-4 landscape:w-full landscape:mt-2 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/20 transition-colors">
           <i class="ph-bold ph-bluetooth text-lg"></i> Connect
         </button>
       </div>
@@ -297,8 +461,10 @@
       <!-- Control Area (Grows to take space) -->
       <div class="flex-grow flex flex-col items-center justify-center min-h-[160px] landscape:min-h-[220px]">
         <div class="flex items-center gap-1 mb-2 bg-black/20 p-1 rounded-lg">
-          <button id="modeDpadBtn" onclick="setControlMode('dpad')" class="px-4 py-1 rounded-md bg-white/30 text-xs font-bold transition-all shadow-sm">D-Pad</button>
-          <button id="modeJoyBtn" onclick="setControlMode('joystick')" class="px-4 py-1 rounded-md text-white/50 text-xs font-bold transition-all hover:text-white">Joystick</button>
+          <button id="modeDpadBtn" onclick="setControlMode('dpad')"
+            class="px-4 py-1 rounded-md bg-white/30 text-xs font-bold transition-all shadow-sm">D-Pad</button>
+          <button id="modeJoyBtn" onclick="setControlMode('joystick')"
+            class="px-4 py-1 rounded-md text-white/50 text-xs font-bold transition-all hover:text-white">Joystick</button>
         </div>
 
         <!-- D-PAD -->
@@ -311,30 +477,41 @@
         </div>
 
         <!-- JOYSTICK -->
-        <div id="joystickContainer" class="hidden w-40 h-40 landscape:w-48 landscape:h-48 relative bg-black/30 rounded-full border-[3px] border-white/20 flex items-center justify-center touch-none shadow-inner">
-          <div id="joystickKnob" class="w-16 h-16 landscape:w-20 landscape:h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.4)] absolute pointer-events-none transition-transform duration-75"></div>
+        <div id="joystickContainer"
+          class="hidden w-40 h-40 landscape:w-48 landscape:h-48 relative bg-black/30 rounded-full border-[3px] border-white/20 flex items-center justify-center touch-none shadow-inner">
+          <div id="joystickKnob"
+            class="w-16 h-16 landscape:w-20 landscape:h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.4)] absolute pointer-events-none transition-transform duration-75">
+          </div>
         </div>
       </div>
 
       <!-- Small Action Buttons -->
       <div class="flex gap-2 shrink-0 mb-2 w-full justify-between items-center">
         <div class="flex gap-2 w-1/2">
-          <button onclick="saveProject()" class="w-full bg-blue-600/80 hover:bg-blue-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors" title="Save Project">
+          <button onclick="saveProject()"
+            class="w-full bg-blue-600/80 hover:bg-blue-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors"
+            title="Save Project">
             <i class="ph-bold ph-floppy-disk text-lg mb-1"></i> Save
           </button>
-          <button onclick="document.getElementById('loadInput').click()" class="w-full bg-blue-600/80 hover:bg-blue-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors" title="Load Project">
+          <button onclick="document.getElementById('loadInput').click()"
+            class="w-full bg-blue-600/80 hover:bg-blue-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors"
+            title="Load Project">
             <i class="ph-bold ph-folder-open text-lg mb-1"></i> Load
           </button>
         </div>
-        
+
         <!-- Subtle vertical separator -->
         <div class="w-[1px] h-8 bg-white/20 mx-1"></div>
 
         <div class="flex gap-2 w-1/2">
-          <button onclick="uploadProgram()" class="w-full bg-amber-600/80 hover:bg-amber-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors" title="Upload Code">
+          <button onclick="uploadProgram()"
+            class="w-full bg-amber-600/80 hover:bg-amber-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors"
+            title="Upload Code">
             <i class="ph-bold ph-upload-simple text-lg mb-1"></i> Upload
           </button>
-          <button onclick="runAutoMode()" class="w-full bg-teal-600/80 hover:bg-teal-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors" title="Run Auto">
+          <button onclick="runAutoMode()"
+            class="w-full bg-teal-600/80 hover:bg-teal-600 py-2 rounded-xl text-[9px] md:text-[10px] font-bold flex flex-col items-center justify-center shadow-lg border border-white/20 transition-colors"
+            title="Run Auto">
             <i class="ph-bold ph-play text-lg mb-1"></i> Run
           </button>
         </div>
@@ -342,7 +519,8 @@
       </div>
 
       <div class="h-16 landscape:h-24 shrink-0 flex flex-col">
-        <div id="serial-console" class="flex-grow bg-black/50 rounded-lg p-2 text-[10px] font-mono overflow-y-auto text-green-400 break-all shadow-inner border border-white/10">
+        <div id="serial-console"
+          class="flex-grow bg-black/50 rounded-lg p-2 text-[10px] font-mono overflow-y-auto text-green-400 break-all shadow-inner border border-white/10">
           > System Ready...<br>
         </div>
       </div>
@@ -351,10 +529,13 @@
     <!-- Workspace -->
     <main class="glass-panel p-0 m-0 flex-grow relative min-h-[50vh] landscape:min-h-0 flex flex-col overflow-hidden">
       <!-- Toolbox Filter Header (Inventor only) -->
-      <div id="categoryFilterBar" class="bg-teal-900/40 border-b border-white/10 px-4 py-2 flex items-center gap-4 shrink-0 z-[40]">
-        <span class="text-sm font-bold text-amber-400 flex items-center gap-2 whitespace-nowrap"><i class="ph-bold ph-stack"></i> Block Library</span>
+      <div id="categoryFilterBar"
+        class="bg-teal-900/40 border-b border-white/10 px-4 py-2 flex items-center gap-4 shrink-0 z-[40]">
+        <span class="text-sm font-bold text-amber-400 flex items-center gap-2 whitespace-nowrap"><i
+            class="ph-bold ph-stack"></i> Block Library</span>
         <div class="relative">
-          <select id="categoryFilter" onchange="filterBlocks(this.value)" class="appearance-none bg-black/40 backdrop-blur border border-white/20 text-white text-xs font-bold py-1.5 pl-3 pr-8 rounded-lg outline-none focus:border-amber-400 transition-colors cursor-pointer">
+          <select id="categoryFilter" onchange="filterBlocks(this.value)"
+            class="appearance-none bg-black/40 backdrop-blur border border-white/20 text-white text-xs font-bold py-1.5 pl-3 pr-8 rounded-lg outline-none focus:border-amber-400 transition-colors cursor-pointer">
             <option value="all">Show All Blocks</option>
             <option value="events">Events</option>
             <option value="logic">Logic &amp; Math</option>
@@ -410,7 +591,7 @@
       // Apply toolbox for selected tier
       const toolboxXml = selectedTier === 1 ? getTier1Toolbox() : getTier2Toolbox();
       workspace.updateToolbox(toolboxXml);
-      
+
       const landing = document.getElementById('landingPage');
       landing.style.opacity = '0';
       setTimeout(() => {
@@ -420,16 +601,51 @@
       }, 500);
     }
 
+    function goBackToLanding() {
+      const landing = document.getElementById('landingPage');
+      const main = document.getElementById('mainApp');
+
+      main.classList.add('hidden');
+      landing.classList.remove('hidden');
+      setTimeout(() => {
+        landing.style.opacity = '1';
+      }, 50);
+
+      // Cleanup internal states
+      isUploading = false;
+      pendingAck = null;
+    }
+
     // --- BLE Logic ---
     const serviceUuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
     const charWriteUuid = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
-    const charReadUuid  = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+    const charReadUuid = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
     let myCharacteristic, txCharacteristic;
 
     function printToConsole(text) {
       let consoleEl = document.getElementById('serial-console');
       consoleEl.innerHTML += "> " + text + "<br>";
       consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    // Holds the resolve function for the current pending ACK from the robot
+    let pendingAck = null;
+    let gattBusy = false;
+    let isUploading = false;
+
+    // Global GATT Lock: ensures only one GATT operation happens at a time.
+    // This prevents "GATT operation already in progress" errors.
+    async function executeGatt(fn) {
+      while (gattBusy) await new Promise(r => setTimeout(r, 10));
+      gattBusy = true;
+      try {
+        const result = await fn();
+        // Small settle delay after every GATT op
+        await new Promise(r => setTimeout(r, 20));
+        return result;
+      } finally {
+        gattBusy = false;
+      }
     }
 
     async function connectBLE() {
@@ -439,9 +655,10 @@
           filters: [{ name: 'Migo_Web_Bot' }],
           optionalServices: [serviceUuid]
         });
-        
+
         device.addEventListener('gattserverdisconnected', () => {
           document.getElementById('status').innerText = 'Status: Disconnected';
+          pendingAck = null; // cancel any pending ACK wait on disconnect
           printToConsole("Disconnected.");
         });
 
@@ -449,16 +666,23 @@
         const service = await server.getPrimaryService(serviceUuid);
         myCharacteristic = await service.getCharacteristic(charWriteUuid);
         txCharacteristic = await service.getCharacteristic(charReadUuid);
-        
+
         txCharacteristic.addEventListener('characteristicvaluechanged', (event) => {
-          let val = new TextDecoder().decode(event.target.value);
-          printToConsole(val.trim());
+          let val = new TextDecoder().decode(event.target.value).trim();
+          // Route 'ACK' to the pending upload promise, print everything else to console
+          if (val === 'ACK' && pendingAck) {
+            const resolve = pendingAck;
+            pendingAck = null;
+            resolve();
+          } else {
+            printToConsole(val);
+          }
         });
         await txCharacteristic.startNotifications();
 
         document.getElementById('status').innerText = 'Status: Connected!';
         printToConsole("Connected successfully!");
-      } catch(e) {
+      } catch (e) {
         console.error(e);
         document.getElementById('status').innerText = 'Status: Connection Failed';
         printToConsole("Connection failed.");
@@ -466,10 +690,31 @@
     }
 
     async function sendCmd(cmd) {
-      if(!myCharacteristic) return;
-      try {
-        await myCharacteristic.writeValueWithoutResponse(new TextEncoder().encode(cmd));
-      } catch(e) { console.error("BLE Error:", e); }
+      if (!myCharacteristic || isUploading) return;
+      await executeGatt(async () => {
+        try {
+          await myCharacteristic.writeValueWithoutResponse(new TextEncoder().encode(cmd));
+        } catch (e) { console.error("BLE Error:", e); }
+      });
+    }
+
+    // ACK-based reliable send: uses writeValueWithoutResponse (no GATT conflicts)
+    // then waits for the robot to send back 'ACK' before resolving.
+    async function sendCmdReliable(cmd) {
+      if (!myCharacteristic) return;
+      
+      await executeGatt(() => myCharacteristic.writeValueWithoutResponse(new TextEncoder().encode(cmd)));
+
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          pendingAck = null;
+          reject(new Error('No ACK from robot (timeout).'));
+        }, 3000); 
+        pendingAck = () => {
+          clearTimeout(timer);
+          resolve();
+        };
+      });
     }
 
     // --- Control Mode Toggle (D-Pad vs Joystick) ---
@@ -500,7 +745,7 @@
     function attachDPad(id, cmd) {
       const el = document.getElementById(id);
       const press = () => sendCmd(`CMD:DIR:${cmd}`);
-      const release = () => { if(cmd !== 'S') sendCmd('CMD:DIR:S'); };
+      const release = () => { if (cmd !== 'S') sendCmd('CMD:DIR:S'); };
       el.addEventListener('mousedown', press);
       el.addEventListener('mouseup', release);
       el.addEventListener('mouseleave', release);
@@ -520,7 +765,7 @@
     let lastLeft = 0, lastRight = 0;
 
     function calcArcadeDrive(dx, dy, maxDist) {
-      const dist = Math.min(Math.sqrt(dx*dx + dy*dy), maxDist);
+      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
       const power = dist / maxDist; // 0.0 to 1.0
       const DEADZONE = 0.15;
       if (power < DEADZONE) return { left: 0, right: 0 };
@@ -530,13 +775,13 @@
 
       // -dy = forward (screen Y is inverted), -dx = turn (negate so right joystick = right turn)
       const forward = (-dy / maxDist) * throttle;
-      const turn    = (-dx / maxDist) * throttle;
+      const turn = (-dx / maxDist) * throttle;
 
       // Arcade mix: one side gets boosted, the other reduced
-      let left  = Math.round((forward + turn) * 255);
+      let left = Math.round((forward + turn) * 255);
       let right = Math.round((forward - turn) * 255);
 
-      left  = Math.max(-255, Math.min(255, left));
+      left = Math.max(-255, Math.min(255, left));
       right = Math.max(-255, Math.min(255, right));
       return { left, right };
     }
@@ -554,12 +799,12 @@
 
       let dx = touch.clientX - cx;
       let dy = touch.clientY - cy;
-      let rawDist = Math.sqrt(dx*dx + dy*dy);
+      let rawDist = Math.sqrt(dx * dx + dy * dy);
       let angle = Math.atan2(dy, dx);
       let clampedDist = Math.min(rawDist, maxDist);
 
       // Move knob visually (clamped to boundary)
-      joyKnob.style.transform = `translate(${Math.cos(angle)*clampedDist}px, ${Math.sin(angle)*clampedDist}px)`;
+      joyKnob.style.transform = `translate(${Math.cos(angle) * clampedDist}px, ${Math.sin(angle) * clampedDist}px)`;
 
       const { left, right } = calcArcadeDrive(dx, dy, maxDist);
       lastLeft = left;
@@ -568,7 +813,7 @@
     }
 
     function releaseJoy(e) {
-      if(e) e.preventDefault();
+      if (e) e.preventDefault();
       isDragging = false;
       joyActive = false;
       lastLeft = 0; lastRight = 0;
@@ -584,49 +829,60 @@
     joyContainer.addEventListener('mousedown', (e) => { isDragging = true; handleJoy(e); });
     document.addEventListener('mousemove', handleJoy);
     document.addEventListener('mouseup', releaseJoy);
-    joyContainer.addEventListener('touchstart', (e) => { isDragging = true; handleJoy(e); }, {passive: false});
-    joyContainer.addEventListener('touchmove', handleJoy, {passive: false});
+    joyContainer.addEventListener('touchstart', (e) => { isDragging = true; handleJoy(e); }, { passive: false });
+    joyContainer.addEventListener('touchmove', handleJoy, { passive: false });
     joyContainer.addEventListener('touchend', releaseJoy);
     joyContainer.addEventListener('touchcancel', releaseJoy);
 
     // --- Blockly Logic ---
     function runAutoMode() {
+      // Simple fire-and-forget — same pattern as reference ESP32-L298N controller.
+      // Robot sends 'OK:Running from...' notification as confirmation.
       sendCmd('CMD:RUN');
       printToConsole("Running program...");
     }
 
     Blockly.defineBlocksWithJsonArray([
-      { "type": "event_setup", "message0": "Setup %1 %2", "args0": [ { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" } ], "colour": 120 },
-      { "type": "event_loop", "message0": "Loop forever %1 %2", "args0": [ { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" } ], "colour": 120 },
-      { "type": "move_robot", "message0": "Move %1 at speed %2", "args0": [ { "type": "field_dropdown", "name": "DIR", "options": [ ["Forward", "F"], ["Backward", "B"], ["Spin Left", "L"], ["Spin Right", "R"] ] }, { "type": "field_number", "name": "SPD", "value": 150, "min": 0, "max": 255 } ], "previousStatement": null, "nextStatement": null, "colour": 230 },
+      { "type": "event_setup", "message0": "Setup %1 %2", "args0": [{ "type": "input_dummy" }, { "type": "input_statement", "name": "DO" }], "colour": 120 },
+      { "type": "event_loop", "message0": "Loop forever %1 %2", "args0": [{ "type": "input_dummy" }, { "type": "input_statement", "name": "DO" }], "colour": 120 },
+      { "type": "move_robot", "message0": "Move %1 at speed %2", "args0": [{ "type": "field_dropdown", "name": "DIR", "options": [["Forward", "F"], ["Backward", "B"], ["Spin Left", "L"], ["Spin Right", "R"]] }, { "type": "field_number", "name": "SPD", "value": 150, "min": 0, "max": 255 }], "previousStatement": null, "nextStatement": null, "colour": 230 },
       { "type": "stop_robot", "message0": "Stop Moving", "previousStatement": null, "nextStatement": null, "colour": 230 },
-      { "type": "wait_time", "message0": "Wait %1 ms", "args0": [ { "type": "field_number", "name": "TIME", "value": 1000, "min": 0 } ], "previousStatement": null, "nextStatement": null, "colour": 60 },
-      { "type": "control_repeat", "message0": "Repeat %1 times %2 %3", "args0": [ { "type": "field_number", "name": "TIMES", "value": 5, "min": 1 }, { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" } ], "previousStatement": null, "nextStatement": null, "colour": 290 },
-      
-      { "type": "setup_pin", "message0": "Set %1 to %2", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A (Pin 34)", "34"], ["Plug B (Pin 35)", "35"], ["Plug C (Pin 32)", "32"], ["Plug D (Pin 14)", "14"] ] }, { "type": "field_dropdown", "name": "MODE", "options": [ ["Input (Read)", "IN"], ["Output (Write)", "OUT"] ] } ], "previousStatement": null, "nextStatement": null, "colour": 260 },
-      { "type": "digital_write", "message0": "Write Digital %2 to %1", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug D (Pin 14)", "14"], ["Plug C (Pin 32)", "32"] ] }, { "type": "field_dropdown", "name": "VAL", "options": [ ["ON (High)", "1"], ["OFF (Low)", "0"] ] } ], "previousStatement": null, "nextStatement": null, "colour": 260 },
-      { "type": "analog_write", "message0": "Write Analog power to %1: %2", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug D (Pin 14)", "14"], ["Plug C (Pin 32)", "32"] ] }, { "type": "input_value", "name": "VAL", "check": "Number" } ], "previousStatement": null, "nextStatement": null, "colour": 260 },
-      
-      { "type": "sensor_ultrasonic", "message0": "Distance from Ultrasonic", "output": "Number", "colour": 100 },
-      { "type": "sensor_ir", "message0": "Is IR Sensor on %1 seeing a line?", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Boolean", "colour": 100 },
-      { "type": "sensor_button", "message0": "Is Button on %1 pressed?", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Boolean", "colour": 100 },
-      { "type": "sensor_knob", "message0": "Get Knob Level on %1", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Number", "colour": 100 },
-      { "type": "sensor_ldr", "message0": "Get Light Level on %1", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Number", "colour": 100 },
-      { "type": "read_digital", "message0": "Read Digital Value on %1", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Boolean", "colour": 100 },
-      { "type": "read_analog", "message0": "Read Analog Value on %1", "args0": [ { "type": "field_dropdown", "name": "PIN", "options": [ ["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"] ] } ], "output": "Number", "colour": 100 },
+      { "type": "wait_time", "message0": "Wait %1 ms", "args0": [{ "type": "field_number", "name": "TIME", "value": 1000, "min": 0 }], "previousStatement": null, "nextStatement": null, "colour": 60 },
+      { "type": "wait_time_s", "message0": "Wait %1 seconds", "args0": [{ "type": "field_number", "name": "TIME", "value": 1, "min": 0 }], "previousStatement": null, "nextStatement": null, "colour": 60 },
+      { "type": "control_repeat", "message0": "Repeat %1 times %2 %3", "args0": [{ "type": "field_number", "name": "TIMES", "value": 5, "min": 1 }, { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" }], "previousStatement": null, "nextStatement": null, "colour": 290 },
 
-      { "type": "def_func", "message0": "Define function %1 %2 %3", "args0": [ { "type": "field_input", "name": "NAME", "text": "myFunction" }, { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" } ], "colour": 290 },
-      { "type": "call_func", "message0": "Call function %1", "args0": [ { "type": "field_input", "name": "NAME", "text": "myFunction" } ], "previousStatement": null, "nextStatement": null, "colour": 290 },
-      { "type": "control_led", "message0": "Turn Built-in LED %1", "args0": [ { "type": "field_dropdown", "name": "STATE", "options": [ ["ON", "on"], ["OFF", "off"] ] } ], "previousStatement": null, "nextStatement": null, "colour": 160 },
-      { "type": "print_serial", "message0": "Print %1 to monitor", "args0": [ { "type": "input_value", "name": "VAL" } ], "previousStatement": null, "nextStatement": null, "colour": 160 }
+      { "type": "setup_pin", "message0": "Set %1 to %2", "args0": [{ "type": "field_dropdown", "name": "PIN", "options": [["Plug A (Pin 34)", "34"], ["Plug B (Pin 35)", "35"], ["Plug C (Pin 32)", "32"], ["Plug D (Pin 14)", "14"]] }, { "type": "field_dropdown", "name": "MODE", "options": [["Input (Read)", "IN"], ["Output (Write)", "OUT"]] }], "previousStatement": null, "nextStatement": null, "colour": 260 },
+      { "type": "digital_write", "message0": "Write Digital %2 to %1", "args0": [{ "type": "field_dropdown", "name": "PIN", "options": [["Plug D (Pin 14)", "14"], ["Plug C (Pin 32)", "32"]] }, { "type": "field_dropdown", "name": "VAL", "options": [["ON (High)", "1"], ["OFF (Low)", "0"]] }], "previousStatement": null, "nextStatement": null, "colour": 260 },
+      { "type": "analog_write", "message0": "Write Analog power to %1: %2", "args0": [{ "type": "field_dropdown", "name": "PIN", "options": [["Plug D (Pin 14)", "14"], ["Plug C (Pin 32)", "32"]] }, { "type": "input_value", "name": "VAL", "check": "Number" }], "previousStatement": null, "nextStatement": null, "colour": 260 },
+
+      { "type": "sensor_ultrasonic", "message0": "Distance from Ultrasonic", "output": "Number", "colour": 100 },
+      { "type": "sensor_ir", "message0": "Is IR Sensor on %1 seeing a line?", "args0": [{ "type": "field_dropdown", "name": "PIN", "options": [["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"]] }], "output": "Boolean", "colour": 100 },
+      { "type": "sensor_button", "message0": "Is Button on %1 pressed?", "args0": [{ "type": "field_dropdown", "name": "PIN", "options": [["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"]] }], "output": "Boolean", "colour": 100 },
+      { "type": "sensor_knob", "message0": "Get Knob Level on %1", "args0": [{ "type": "field_dropdown", "name": "PIN", "options": [["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"]] }], "output": "Number", "colour": 100 },
+      { "type": "sensor_ldr", "message0": "Get Light Level on %1", "args0": [{ "type": "field_dropdown", "name": "PIN", "options": [["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"]] }], "output": "Number", "colour": 100 },
+      { "type": "read_digital", "message0": "Read Digital Value on %1", "args0": [{ "type": "field_dropdown", "name": "PIN", "options": [["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"]] }], "output": "Boolean", "colour": 100 },
+      { "type": "read_analog", "message0": "Read Analog Value on %1", "args0": [{ "type": "field_dropdown", "name": "PIN", "options": [["Plug A", "34"], ["Plug B", "35"], ["Plug C", "32"]] }], "output": "Number", "colour": 100 },
+
+      { "type": "setup_pin_custom", "message0": "Set Custom Pin %1 to %2", "args0": [{ "type": "field_number", "name": "PIN", "value": 0, "min": 0, "max": 39 }, { "type": "field_dropdown", "name": "MODE", "options": [["Input (Read)", "IN"], ["Output (Write)", "OUT"]] }], "previousStatement": null, "nextStatement": null, "colour": 260 },
+      { "type": "digital_write_custom", "message0": "Write Digital %2 to Pin %1", "args0": [{ "type": "field_number", "name": "PIN", "value": 0, "min": 0, "max": 39 }, { "type": "field_dropdown", "name": "VAL", "options": [["ON (High)", "1"], ["OFF (Low)", "0"]] }], "previousStatement": null, "nextStatement": null, "colour": 260 },
+      { "type": "analog_write_custom", "message0": "Write Analog power to Pin %1: %2", "args0": [{ "type": "field_number", "name": "PIN", "value": 0, "min": 0, "max": 39 }, { "type": "input_value", "name": "VAL", "check": "Number" }], "previousStatement": null, "nextStatement": null, "colour": 260 },
+      { "type": "read_digital_custom", "message0": "Read Digital on Pin %1", "args0": [{ "type": "field_number", "name": "PIN", "value": 0, "min": 0, "max": 39 }], "output": "Boolean", "colour": 100 },
+      { "type": "read_analog_custom", "message0": "Read Analog on Pin %1", "args0": [{ "type": "field_number", "name": "PIN", "value": 0, "min": 0, "max": 39 }], "output": "Number", "colour": 100 },
+
+      { "type": "def_func", "message0": "Define function %1 %2 %3", "args0": [{ "type": "field_input", "name": "NAME", "text": "myFunction" }, { "type": "input_dummy" }, { "type": "input_statement", "name": "DO" }], "colour": 290 },
+      { "type": "call_func", "message0": "Call function %1", "args0": [{ "type": "field_input", "name": "NAME", "text": "myFunction" }], "previousStatement": null, "nextStatement": null, "colour": 290 },
+      { "type": "control_led", "message0": "Turn Built-in LED %1", "args0": [{ "type": "field_dropdown", "name": "STATE", "options": [["ON", "on"], ["OFF", "off"]] }], "previousStatement": null, "nextStatement": null, "colour": 160 },
+      { "type": "control_led_explorer", "message0": "Turn Light %1", "args0": [{ "type": "field_dropdown", "name": "STATE", "options": [["ON", "on"], ["OFF", "off"]] }], "previousStatement": null, "nextStatement": null, "colour": 160 },
+      { "type": "print_serial", "message0": "Print %1 to monitor", "args0": [{ "type": "input_value", "name": "VAL" }], "previousStatement": null, "nextStatement": null, "colour": 160 },
+      { "type": "print_serial_explorer", "message0": "Say %1", "args0": [{ "type": "input_value", "name": "VAL" }], "previousStatement": null, "nextStatement": null, "colour": 160 }
     ]);
 
     const blockCategories = {
       events: `<label text="✦ EVENTS" web-class="label-events"></label><block type="event_setup"></block><block type="event_loop"></block>`,
       logic: `<label text="✦ LOGIC &amp; MATH" web-class="label-logic"></label><block type="controls_if"></block><block type="logic_compare"></block><block type="logic_operation"></block><block type="math_number"></block><block type="text"></block><block type="control_repeat"></block>`,
       movement: `<label text="✦ MOVEMENT" web-class="label-movement"></label><block type="move_robot"></block><block type="stop_robot"></block><block type="wait_time"></block>`,
-      sensors: `<label text="✦ SENSORS" web-class="label-sensors"></label><block type="sensor_ultrasonic"></block><block type="sensor_ir"></block><block type="sensor_button"></block><block type="sensor_knob"></block><block type="sensor_ldr"></block><block type="read_digital"></block><block type="read_analog"></block>`,
-      hardware: `<label text="✦ HARDWARE" web-class="label-hardware"></label><block type="setup_pin"></block><block type="digital_write"></block><block type="analog_write"></block><block type="control_led"></block>`,
+      sensors: `<label text="✦ SENSORS" web-class="label-sensors"></label><block type="sensor_ultrasonic"></block><block type="sensor_ir"></block><block type="sensor_button"></block><block type="sensor_knob"></block><block type="sensor_ldr"></block><block type="read_digital"></block><block type="read_digital_custom"></block><block type="read_analog"></block><block type="read_analog_custom"></block>`,
+      hardware: `<label text="✦ HARDWARE" web-class="label-hardware"></label><block type="setup_pin"></block><block type="setup_pin_custom"></block><block type="digital_write"></block><block type="digital_write_custom"></block><block type="analog_write"></block><block type="analog_write_custom"></block><block type="control_led"></block>`,
       functions: `<label text="✦ FUNCTIONS" web-class="label-functions"></label><block type="def_func"></block><block type="call_func"></block><block type="print_serial"></block>`
     };
 
@@ -637,15 +893,15 @@
         <sep gap="24"></sep>
         <block type="move_robot"></block>
         <block type="stop_robot"></block>
-        <block type="wait_time"></block>
+        <block type="wait_time_s"></block>
         <sep gap="24"></sep>
         <block type="control_repeat"></block>
         <sep gap="24"></sep>
         <block type="def_func"></block>
         <block type="call_func"></block>
         <sep gap="24"></sep>
-        <block type="control_led"></block>
-        <block type="print_serial"></block>
+        <block type="control_led_explorer"></block>
+        <block type="print_serial_explorer"></block>
         <block type="text"></block>
       </xml>`;
     }
@@ -659,11 +915,11 @@
       let xmlContent = "";
       if (category === "all") {
         xmlContent = blockCategories.events + "<sep gap='32'></sep>" +
-                     blockCategories.logic + "<sep gap='32'></sep>" +
-                     blockCategories.movement + "<sep gap='32'></sep>" +
-                     blockCategories.sensors + "<sep gap='32'></sep>" +
-                     blockCategories.hardware + "<sep gap='32'></sep>" +
-                     blockCategories.functions;
+          blockCategories.logic + "<sep gap='32'></sep>" +
+          blockCategories.movement + "<sep gap='32'></sep>" +
+          blockCategories.sensors + "<sep gap='32'></sep>" +
+          blockCategories.hardware + "<sep gap='32'></sep>" +
+          blockCategories.functions;
       } else {
         xmlContent = blockCategories[category];
       }
@@ -678,10 +934,10 @@
     });
 
     function parseValue(block) {
-      if(!block) return {c: "VAL", v: 0};
-      if(block.type === 'math_number') return {c: "VAL", v: Number(block.getFieldValue("NUM"))};
-      if(block.type === 'text') return {c: "TXT", v: block.getFieldValue("TEXT")};
-      if(block.type === 'logic_compare') {
+      if (!block) return { c: "VAL", v: 0 };
+      if (block.type === 'math_number') return { c: "VAL", v: Number(block.getFieldValue("NUM")) };
+      if (block.type === 'text') return { c: "TXT", v: block.getFieldValue("TEXT") };
+      if (block.type === 'logic_compare') {
         let op = block.getFieldValue("OP"); // 'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'
         let opStr = "==";
         if (op === "NEQ") opStr = "!=";
@@ -691,67 +947,77 @@
         else if (op === "GTE") opStr = ">=";
         return { c: "OP", op: opStr, l: parseValue(block.getInputTargetBlock("A")), r: parseValue(block.getInputTargetBlock("B")) };
       }
-      if(block.type === 'logic_operation') {
+      if (block.type === 'logic_operation') {
         return { c: "OP", op: block.getFieldValue("OP") === "AND" ? "AND" : "OR", l: parseValue(block.getInputTargetBlock("A")), r: parseValue(block.getInputTargetBlock("B")) };
       }
-      if(block.type === 'sensor_ultrasonic') return {c: "UR", t: 13, e: 12}; // Default Pins
-      if(block.type === 'sensor_ir' || block.type === 'sensor_button') {
+      if (block.type === 'sensor_ultrasonic') return { c: "UR", t: 13, e: 12 }; // Default Pins
+      if (block.type === 'sensor_ir' || block.type === 'sensor_button') {
         // Digital Read (Active Low comparison for ease of use)
-        return {c: "OP", op: "==", l: {c: "DR", p: Number(block.getFieldValue("PIN"))}, r: {c: "VAL", v: 0}};
+        return { c: "OP", op: "==", l: { c: "DR", p: Number(block.getFieldValue("PIN")) }, r: { c: "VAL", v: 0 } };
       }
-      if(block.type === 'sensor_knob' || block.type === 'sensor_ldr') {
+      if (block.type === 'sensor_knob' || block.type === 'sensor_ldr') {
         // Map 0-4095 to 0-100%
-        return {c: "OP", op: "/", l: {c: "OP", op: "*", l: {c: "AR", p: Number(block.getFieldValue("PIN"))}, r: {c: "VAL", v: 100}}, r: {c: "VAL", v: 4095}};
+        return { c: "OP", op: "/", l: { c: "OP", op: "*", l: { c: "AR", p: Number(block.getFieldValue("PIN")) }, r: { c: "VAL", v: 100 } }, r: { c: "VAL", v: 4095 } };
       }
-      if(block.type === 'read_digital') return {c: "DR", p: Number(block.getFieldValue("PIN"))};
-      if(block.type === 'read_analog') return {c: "AR", p: Number(block.getFieldValue("PIN"))};
-      return {c: "VAL", v: 0};
+      if (block.type === 'read_digital' || block.type === 'read_digital_custom') return { c: "DR", p: Number(block.getFieldValue("PIN")) };
+      if (block.type === 'read_analog' || block.type === 'read_analog_custom') return { c: "AR", p: Number(block.getFieldValue("PIN")) };
+      return { c: "VAL", v: 0 };
     }
 
     function parseBlock(block) {
-      if(!block) return null;
+      if (!block) return null;
       let arr = [];
       let current = block;
-      while(current) {
-        if(current.type === 'move_robot') arr.push({c: "M", d: current.getFieldValue("DIR"), s: Number(current.getFieldValue("SPD"))});
-        else if(current.type === 'stop_robot') arr.push({c: "M", d: "S", s: 0});
-        else if(current.type === 'wait_time') arr.push({c: "W", t: Number(current.getFieldValue("TIME"))});
-        else if(current.type === 'control_repeat') arr.push({c: "FOR", times: Number(current.getFieldValue("TIMES")), "do": parseBlock(current.getInputTargetBlock("DO")) || []});
-        else if(current.type === 'controls_if') {
-          let obj = {c: "IF", cond: parseValue(current.getInputTargetBlock("IF0")), "do": parseBlock(current.getInputTargetBlock("DO0")) || []};
+      while (current) {
+        if (current.type === 'move_robot') arr.push({ c: "M", d: current.getFieldValue("DIR"), s: Number(current.getFieldValue("SPD")) });
+        else if (current.type === 'stop_robot') arr.push({ c: "M", d: "S", s: 0 });
+        else if (current.type === 'wait_time') arr.push({ c: "W", t: Number(current.getFieldValue("TIME")) });
+        else if (current.type === 'wait_time_s') arr.push({ c: "W", t: Number(current.getFieldValue("TIME")) * 1000 });
+        else if (current.type === 'control_repeat') arr.push({ c: "FOR", times: Number(current.getFieldValue("TIMES")), "do": parseBlock(current.getInputTargetBlock("DO")) || [] });
+        else if (current.type === 'controls_if') {
+          let obj = { c: "IF", cond: parseValue(current.getInputTargetBlock("IF0")), "do": parseBlock(current.getInputTargetBlock("DO0")) || [] };
           if (current.getInputTargetBlock("ELSE")) obj["else"] = parseBlock(current.getInputTargetBlock("ELSE")) || [];
           arr.push(obj);
         }
-        else if(current.type === 'setup_pin') arr.push({c: "PM", p: Number(current.getFieldValue("PIN")), m: current.getFieldValue("MODE")});
-        else if(current.type === 'digital_write') arr.push({c: "DW", p: Number(current.getFieldValue("PIN")), v: {c: "VAL", v: Number(current.getFieldValue("VAL"))}});
-        else if(current.type === 'analog_write') arr.push({c: "AW", p: Number(current.getFieldValue("PIN")), v: parseValue(current.getInputTargetBlock("VAL"))});
-        else if(current.type === 'call_func') arr.push({c: "C", f: current.getFieldValue("NAME")});
-        else if(current.type === 'control_led') arr.push({c: "L", state: current.getFieldValue("STATE")});
-        else if(current.type === 'print_serial') arr.push({c: "P", v: parseValue(current.getInputTargetBlock("VAL"))});
+        else if (current.type === 'setup_pin' || current.type === 'setup_pin_custom') arr.push({ c: "PM", p: Number(current.getFieldValue("PIN")), m: current.getFieldValue("MODE") });
+        else if (current.type === 'digital_write' || current.type === 'digital_write_custom') arr.push({ c: "DW", p: Number(current.getFieldValue("PIN")), v: { c: "VAL", v: Number(current.getFieldValue("VAL")) } });
+        else if (current.type === 'analog_write' || current.type === 'analog_write_custom') arr.push({ c: "AW", p: Number(current.getFieldValue("PIN")), v: parseValue(current.getInputTargetBlock("VAL")) });
+        else if (current.type === 'call_func') arr.push({ c: "C", f: current.getFieldValue("NAME") });
+        else if (current.type === 'control_led' || current.type === 'control_led_explorer') arr.push({ c: "L", state: current.getFieldValue("STATE") });
+        else if (current.type === 'print_serial' || current.type === 'print_serial_explorer') arr.push({ c: "P", v: parseValue(current.getInputTargetBlock("VAL")) });
         current = current.getNextBlock();
       }
       return arr;
     }
 
     async function uploadProgram() {
-      if(!myCharacteristic) { alert("Please connect to the robot first!"); return; }
+      if (!myCharacteristic) { alert("Please connect to the robot first!"); return; }
+      if (isUploading) return;
+      
+      isUploading = true;
+      pendingAck = null;
       let json = { funcs: {} };
-      for(let b of workspace.getTopBlocks()) {
-        if(b.type === 'event_setup') json.funcs.setup = parseBlock(b.getInputTargetBlock("DO")) || [];
-        else if(b.type === 'event_loop') json.funcs.loop = parseBlock(b.getInputTargetBlock("DO")) || [];
-        else if(b.type === 'def_func') json.funcs[b.getFieldValue("NAME")] = parseBlock(b.getInputTargetBlock("DO")) || [];
+      for (let b of workspace.getTopBlocks()) {
+        if (b.type === 'event_setup') json.funcs.setup = parseBlock(b.getInputTargetBlock("DO")) || [];
+        else if (b.type === 'event_loop') json.funcs.loop = parseBlock(b.getInputTargetBlock("DO")) || [];
+        else if (b.type === 'def_func') json.funcs[b.getFieldValue("NAME")] = parseBlock(b.getInputTargetBlock("DO")) || [];
       }
       let str = JSON.stringify(json);
-      printToConsole("Uploading script...");
+      const CHUNK = 18;
+      const totalChunks = Math.ceil(str.length / CHUNK);
+      printToConsole(`Uploading ${str.length} bytes in ${totalChunks} packets...`);
       try {
-        await sendCmd("<SCRIPT:START>");
-        for(let i=0; i<str.length; i+=50) {
-          await sendCmd(str.substring(i, i+50));
-          await new Promise(r => setTimeout(r, 50));
+        await sendCmdReliable('<SCRIPT:START>'); 
+        for (let i = 0; i < str.length; i += CHUNK) {
+          await sendCmdReliable(str.substring(i, i + CHUNK));
         }
-        await sendCmd("<SCRIPT:END>");
-        printToConsole("Upload complete!");
-      } catch(e) { printToConsole("Upload failed."); }
+        await executeGatt(() => myCharacteristic.writeValueWithoutResponse(new TextEncoder().encode('<SCRIPT:END>')));
+        printToConsole("Waiting for robot confirmation...");
+      } catch (e) { 
+        printToConsole("Upload failed: " + e.message); 
+      } finally {
+        isUploading = false;
+      }
     }
 
     function saveProject() {
@@ -764,7 +1030,7 @@
       const jsonText = JSON.stringify(state, null, 2);
       const a = document.createElement('a');
       a.download = fileName;
-      a.href = URL.createObjectURL(new Blob([jsonText], {type: 'application/json'}));
+      a.href = URL.createObjectURL(new Blob([jsonText], { type: 'application/json' }));
       a.click();
       printToConsole(`Project saved as ${fileName}.`);
     }
@@ -780,14 +1046,14 @@
           workspace.clear();
           Blockly.serialization.workspaces.load(state, workspace);
           printToConsole("Project loaded successfully.");
-        } catch(err) {
+        } catch (err) {
           // Fallback if the user uploaded an older .xml file
           try {
             workspace.clear();
             const xml = Blockly.Xml.textToDom(e.target.result);
             Blockly.Xml.domToWorkspace(xml, workspace);
             printToConsole("Legacy XML project loaded.");
-          } catch(xmlErr) {
+          } catch (xmlErr) {
             console.error(err, xmlErr);
             printToConsole("Error: Could not read project file.");
           }
@@ -798,4 +1064,5 @@
     }
   </script>
 </body>
+
 </html>
