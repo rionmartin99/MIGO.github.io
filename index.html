@@ -1,11 +1,11 @@
 <!-- 
-  MIGO Web Controller | Version: 3.1.16
+  MIGO Web Controller | Version: 3.1.17
   Change Log:
+  [May 30, 2026 10:15 PM] New Feature: Updated API key link to direct creation page and added parent setup guide.
   [May 30, 2026 10:05 PM] Fix: Increased z-index of guide, tutorial, and quest modals to z-[110] to overlay mobile chat panel.
   [May 30, 2026 10:00 PM] Fix: Adjusted Sim Twin toggle button and AI Tutor float button coordinates for horizontal mobile layouts.
   [May 30, 2026 09:55 PM] New Feature: Added horizontal toolbox layout for mobile mode to increase coding workspace space.
   [May 30, 2026 09:50 PM] Fix: Changed default mobile tab view to Control Panel instead of Workspace.
-  [May 30, 2026 09:45 PM] Fix: Upgraded chat panel to glass-panel-dark and MIGO message bubbles to bg-slate-950 for high contrast readability.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -833,6 +833,19 @@
           class="mt-4 text-[10px] text-teal-300/80 hover:text-teal-200 underline cursor-pointer flex items-center justify-center gap-1 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10 transition-all">
           <i class="ph-bold ph-arrow-square-out text-[11px]"></i> Parents: Get Gemini API Key
         </button>
+
+        <div class="mt-4 p-2.5 bg-black/30 rounded-xl text-left text-[9px] text-white/70 max-w-[240px] border border-white/10 leading-normal shrink-0">
+          <p class="font-bold text-amber-400 uppercase tracking-wider mb-1.5 text-center flex items-center justify-center gap-1">
+            <i class="ph-bold ph-info"></i> API Key Quick Guide:
+          </p>
+          <ol class="list-decimal pl-4 space-y-1">
+            <li>Solve the math check above to open Google AI Studio.</li>
+            <li>Log in with any Google account.</li>
+            <li>Click the blue <b>"Create API key"</b> button.</li>
+            <li>Choose <b>"Create API key in new project"</b>.</li>
+            <li>Copy the generated <b>"AIzaSy..."</b> key, paste it here, and tap Unlock!</li>
+          </ol>
+        </div>
 
         <div id="apiKeyLoader" class="hidden mt-3 flex items-center gap-2 text-[10px] text-teal-300">
           <i class="ph ph-spinner animate-spin text-sm"></i> Validating key with Google AI...
@@ -3262,7 +3275,7 @@ Example 1: Move forward for 2 seconds and stop (Explorer):
       if (parentInput === null) return;
 
       if (parseInt(parentInput.trim()) === answer) {
-        window.open("https://aistudio.google.com/", "_blank");
+        window.open("https://aistudio.google.com/app/apikey", "_blank");
       } else {
         alert("Oops, that answer isn't quite right. Please ask a parent or teacher to assist you!");
       }
