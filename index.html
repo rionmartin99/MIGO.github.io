@@ -1,11 +1,11 @@
 <!-- 
-  MIGO Web Controller | Version: 3.1.19
+  MIGO Web Controller | Version: 3.1.20
   Change Log:
+  [Jun 01, 2026 11:25 AM] Fix: Corrected C++ motor directions, added else-if parser/generator logic, and enabled full simulator support for conditionals, variables, and actuator previews.
   [May 30, 2026 10:30 PM] Fix: Removed color description from the "Create API Key" button step in the onboarding guide.
   [May 30, 2026 10:25 PM] Fix: Adjusted API Key button text and updated step-by-step parent setup guide.
   [May 30, 2026 10:15 PM] New Feature: Updated API key link to direct creation page and added parent setup guide.
   [May 30, 2026 10:05 PM] Fix: Increased z-index of guide, tutorial, and quest modals to z-[110] to overlay mobile chat panel.
-  [May 30, 2026 10:00 PM] Fix: Adjusted Sim Twin toggle button and AI Tutor float button coordinates for horizontal mobile layouts.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -2400,9 +2400,26 @@
         else if (current.type === 'wait_time_s') arr.push({ c: "W", t: Number(current.getFieldValue("TIME")) * 1000 });
         else if (current.type === 'control_repeat') arr.push({ c: "FOR", times: Number(current.getFieldValue("TIMES")), "do": parseBlock(current.getInputTargetBlock("DO")) || [] });
         else if (current.type === 'controls_if') {
-          let obj = { c: "IF", cond: parseValue(current.getInputTargetBlock("IF0")), "do": parseBlock(current.getInputTargetBlock("DO0")) || [] };
-          if (current.getInputTargetBlock("ELSE")) obj["else"] = parseBlock(current.getInputTargetBlock("ELSE")) || [];
-          arr.push(obj);
+          const elseifCount = current.elseifCount_ || 0;
+          const buildIfNode = (index) => {
+            const condBlock = current.getInputTargetBlock("IF" + index);
+            const doBlock = current.getInputTargetBlock("DO" + index);
+            const node = {
+              c: "IF",
+              cond: parseValue(condBlock),
+              "do": parseBlock(doBlock) || []
+            };
+            if (index < elseifCount) {
+              node["else"] = [buildIfNode(index + 1)];
+            } else {
+              const elseBlock = current.getInputTargetBlock("ELSE");
+              if (elseBlock) {
+                node["else"] = parseBlock(elseBlock) || [];
+              }
+            }
+            return node;
+          };
+          arr.push(buildIfNode(0));
         }
         else if (current.type === 'setup_pin' || current.type === 'setup_pin_custom') arr.push({ c: "PM", p: Number(current.getFieldValue("PIN")), m: current.getFieldValue("MODE") });
         else if (current.type === 'digital_write' || current.type === 'digital_write_custom') arr.push({ c: "DW", p: Number(current.getFieldValue("PIN")), v: { c: "VAL", v: Number(current.getFieldValue("VAL")) } });
@@ -2617,8 +2634,13 @@
             blockCode += `${indent}}\n`;
             loopDepth--;
           } else if (current.type === 'controls_if') {
+            const elseifCount = current.elseifCount_ || 0;
             blockCode += `${indent}if (${getValCpp(current.getInputTargetBlock("IF0"))}) {\n`;
             blockCode += getBlocksCpp(current.getInputTargetBlock("DO0"), indent + "  ");
+            for (let i = 1; i <= elseifCount; i++) {
+              blockCode += `${indent}} else if (${getValCpp(current.getInputTargetBlock("IF" + i))}) {\n`;
+              blockCode += getBlocksCpp(current.getInputTargetBlock("DO" + i), indent + "  ");
+            }
             if (current.getInputTargetBlock("ELSE")) {
               blockCode += `${indent}} else {\n`;
               blockCode += getBlocksCpp(current.getInputTargetBlock("ELSE"), indent + "  ");
@@ -2836,8 +2858,8 @@
         if (hasMovement) {
           helperDefsCode += "void stopMotors() {\n  analogWrite(IN1, 0); analogWrite(IN2, 0); analogWrite(IN3, 0); analogWrite(IN4, 0);\n}\n\n";
           helperDefsCode += "void moveRobot(String dir, int speed) {\n";
-          helperDefsCode += "  if (dir == \"F\") {\n    analogWrite(IN1, speed); analogWrite(IN2, 0); analogWrite(IN3, 0); analogWrite(IN4, speed);\n";
-          helperDefsCode += "  } else if (dir == \"B\") {\n    analogWrite(IN1, 0); analogWrite(IN2, speed); analogWrite(IN3, speed); analogWrite(IN4, 0);\n";
+          helperDefsCode += "  if (dir == \"F\") {\n    analogWrite(IN1, 0); analogWrite(IN2, speed); analogWrite(IN3, speed); analogWrite(IN4, 0);\n";
+          helperDefsCode += "  } else if (dir == \"B\") {\n    analogWrite(IN1, speed); analogWrite(IN2, 0); analogWrite(IN3, 0); analogWrite(IN4, speed);\n";
           helperDefsCode += "  } else if (dir == \"L\") {\n    analogWrite(IN1, speed); analogWrite(IN2, 0); analogWrite(IN3, speed); analogWrite(IN4, 0);\n";
           helperDefsCode += "  } else if (dir == \"R\") {\n    analogWrite(IN1, 0); analogWrite(IN2, speed); analogWrite(IN3, 0); analogWrite(IN4, speed);\n";
           helperDefsCode += "  } else {\n    stopMotors();\n  }\n}\n\n";
@@ -2894,6 +2916,65 @@
     let simScriptStack = [];
     let simDelayTime = 0;
     let simProgramJson = null;
+    let simVariables = {};
+    let simOledBuffer = [];
+    let simOledActive = false;
+    let simBuzzerFreq = 0;
+    let simBuzzerDur = 0;
+    let simServoAngle = 90;
+
+    function getSimWallDistance() {
+      let x = simRobot.x;
+      let y = simRobot.y;
+      let theta = simRobot.angle;
+      let cos = Math.cos(theta);
+      let sin = Math.sin(theta);
+      let xDist = Infinity;
+      let yDist = Infinity;
+      if (cos > 0) {
+        xDist = (180 - x) / cos;
+      } else if (cos < 0) {
+        xDist = -x / cos;
+      }
+      if (sin > 0) {
+        yDist = (180 - y) / sin;
+      } else if (sin < 0) {
+        yDist = -y / sin;
+      }
+      return Math.min(xDist, yDist);
+    }
+
+    function evaluateSimExpression(expr) {
+      if (!expr) return 0;
+      if (typeof expr === 'number') return expr;
+      if (typeof expr === 'string') return parseFloat(expr) || 0;
+      if (typeof expr === 'boolean') return expr ? 1 : 0;
+
+      if (expr.c === "VAL") return Number(expr.v);
+      if (expr.c === "TXT") return String(expr.v);
+      if (expr.c === "V_GET") return simVariables[expr.n] || 0;
+      if (expr.c === "UR") return getSimWallDistance();
+      if (expr.c === "DR") return 1;
+      if (expr.c === "AR") return 2048;
+      if (expr.c === "OP") {
+        let l = evaluateSimExpression(expr.l);
+        let r = evaluateSimExpression(expr.r);
+        let op = expr.op;
+        if (op === "<") return l < r ? 1 : 0;
+        if (op === ">") return l > r ? 1 : 0;
+        if (op === "<=") return l <= r ? 1 : 0;
+        if (op === ">=") return l >= r ? 1 : 0;
+        if (op === "==") return l == r ? 1 : 0;
+        if (op === "!=") return l != r ? 1 : 0;
+        if (op === "AND") return (l > 0 && r > 0) ? 1 : 0;
+        if (op === "OR") return (l > 0 || r > 0) ? 1 : 0;
+        if (op === "+") return l + r;
+        if (op === "-") return l - r;
+        if (op === "*") return l * r;
+        if (op === "/") return r !== 0 ? l / r : 0;
+      }
+      return 0;
+    }
 
     function toggleSimulator() {
       const panel = document.getElementById("simPanel");
@@ -3008,6 +3089,48 @@
       simCtx.fill();
 
       simCtx.restore();
+
+      // Draw Simulated OLED Screen Overlay
+      if (simOledActive) {
+        simCtx.fillStyle = "#000000";
+        simCtx.strokeStyle = "#0088ff";
+        simCtx.lineWidth = 1.5;
+        simCtx.beginPath();
+        simCtx.roundRect(100, 5, 75, 45, 3);
+        simCtx.fill();
+        simCtx.stroke();
+
+        simCtx.fillStyle = "#0088ff";
+        simCtx.font = "bold 6px monospace";
+        simCtx.fillText("OLED SCREEN", 105, 12);
+        
+        simCtx.fillStyle = "#ffffff";
+        for (let item of simOledBuffer) {
+          let px = 102 + (item.x / 128) * 70;
+          let py = 18 + (item.y / 64) * 28;
+          let fontSize = Math.max(4, item.sz * 4);
+          simCtx.font = `${fontSize}px monospace`;
+          simCtx.fillText(item.v, px, py);
+        }
+      }
+
+      // Draw Status Overlay (Buzzer, Servo, and Sensor telemetry)
+      simCtx.fillStyle = "rgba(15, 23, 42, 0.75)";
+      simCtx.beginPath();
+      simCtx.roundRect(5, 140, 170, 35, 4);
+      simCtx.fill();
+
+      simCtx.fillStyle = "#ffffff";
+      simCtx.font = "8px monospace";
+      let distVal = getSimWallDistance().toFixed(1);
+      simCtx.fillText(`Ultrasonic: ${distVal} cm`, 10, 150);
+      simCtx.fillText(`Servo Pin 14: ${simServoAngle}°`, 10, 160);
+      if (simBuzzerDur > 0 && simBuzzerFreq > 0) {
+        simCtx.fillStyle = "#f59e0b";
+        simCtx.fillText(`Buzzer: ${simBuzzerFreq} Hz ♫`, 10, 170);
+      } else {
+        simCtx.fillText("Buzzer: Idle", 10, 170);
+      }
     }
 
     function runSimulation() {
@@ -3027,6 +3150,12 @@
 
       simScriptStack = [];
       simDelayTime = 0;
+      simVariables = {};
+      simOledBuffer = [];
+      simOledActive = false;
+      simBuzzerFreq = 0;
+      simBuzzerDur = 0;
+      simServoAngle = 90;
 
       if (json.funcs.setup && json.funcs.setup.length > 0) {
         simScriptStack.push({ array: json.funcs.setup, index: 0 });
@@ -3044,6 +3173,9 @@
 
       simInterval = setInterval(() => {
         let stepSpeed = 1.2;
+        if (simBuzzerDur > 0) {
+          simBuzzerDur -= 20;
+        }
         if (simRobot.dir === "F") {
           simRobot.x += Math.cos(simRobot.angle) * stepSpeed;
           simRobot.y += Math.sin(simRobot.angle) * stepSpeed;
@@ -3106,7 +3238,7 @@
               } else if (cmd.c === "L") {
                 simRobot.led = cmd.state === "on";
               } else if (cmd.c === "P") {
-                let val = cmd.v.c === "TXT" ? cmd.v.v : "SimVal";
+                let val = evaluateSimExpression(cmd.v);
                 printToConsole("[SIM] " + val);
               } else if (cmd.c === "FOR") {
                 let loopBody = cmd.do || [];
@@ -3118,6 +3250,35 @@
                 if (funcBody.length > 0) {
                   simScriptStack.push({ array: funcBody, index: 0 });
                 }
+              } else if (cmd.c === "IF") {
+                let cond = evaluateSimExpression(cmd.cond);
+                if (cond > 0) {
+                  let doBody = cmd.do || [];
+                  if (doBody.length > 0) {
+                    simScriptStack.push({ array: doBody, index: 0 });
+                  }
+                } else {
+                  let elseBody = cmd.else || [];
+                  if (elseBody.length > 0) {
+                    simScriptStack.push({ array: elseBody, index: 0 });
+                  }
+                }
+              } else if (cmd.c === "V_SET") {
+                simVariables[cmd.n] = evaluateSimExpression(cmd.v);
+              } else if (cmd.c === "BZ") {
+                simBuzzerFreq = evaluateSimExpression(cmd.f);
+                simBuzzerDur = cmd.d;
+                simDelayTime = cmd.d;
+              } else if (cmd.c === "SV") {
+                simServoAngle = evaluateSimExpression(cmd.a);
+              } else if (cmd.c === "OLI") {
+                simOledActive = true;
+              } else if (cmd.c === "OLC") {
+                simOledBuffer = [];
+              } else if (cmd.c === "OLP") {
+                simOledBuffer.push({ x: cmd.x, y: cmd.y, sz: cmd.sz, v: evaluateSimExpression(cmd.v) });
+              } else if (cmd.c === "OLSHOW") {
+                // Buffer is already updated, drawSim will render it
               }
             }
           }
@@ -3134,6 +3295,8 @@
       simRobot.leftSpeed = 0;
       simRobot.rightSpeed = 0;
       simDelayTime = 0;
+      simOledActive = false;
+      simBuzzerDur = 0;
       drawSim();
       printToConsole("Simulation stopped.");
     }
